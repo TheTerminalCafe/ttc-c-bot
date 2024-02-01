@@ -1,0 +1,6 @@
+disbot
+log.txt
+*.o
+*.a
+*.so
+config.ini
