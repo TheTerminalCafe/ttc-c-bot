@@ -50,6 +50,14 @@ static command_opt_t pardon_opts[] = {
 
 static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2 };
 
+static command_opt_t timeout_opts[] = {
+	{ .name = "user", .description = "user to timeout", .type = DiscordOptionUser, .required = 1 },
+	{ .name = "days_to_timeout", .description = "number of days to timeout", .type = DiscordOptionInteger, .required = 1 },
+	{ .name = "reason", .description = "reason for timeout", .type = DiscordOptionString, .required = 0 }
+};
+
+static command_t timeout = { .name = "timeout", .description = "timeout member", .type = 1, .options = timeout_opts, .option_count = 3, .allow_in_dms = false };
+
 int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
@@ -59,8 +67,10 @@ int main() {
 	discord_create_application_command(&kick, discord, kick_handle);	
 	discord_create_application_command(&pardon, discord, pardon_handle);	
 	discord_create_application_command(&ban, discord, ban_handle);
-	ttc_discord_run(discord);
+	// Disabled due to missing permission checks
+	// discord_create_application_command(&timeout, discord, timeout_handle);
 
+	ttc_discord_run(discord);
 
 	ttc_discord_ctx_destroy(discord);
 	ttc_log_deinit_file();
