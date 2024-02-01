@@ -419,14 +419,12 @@ ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
 }
 
 void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
-	
-
 	switch (interaction->type) {
 		case DiscordInteractionAppCmd:
 			for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
-				if(interaction->data.command->options[ind].type & 
-					(DiscordOptionString | DiscordOptionChannel | DiscordOptionUser |
-					 DiscordOptionRole)) {
+				uint32_t type = interaction->data.command->options[ind].type;
+				if(type == DiscordOptionString || type == DiscordOptionChannel || type == DiscordOptionUser
+						|| type == DiscordOptionRole) {
 					free(interaction->data.command->options[ind].value.string);
 				}
 			}
