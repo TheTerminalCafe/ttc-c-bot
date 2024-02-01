@@ -16,9 +16,13 @@
 #include <ttc-http.h>
 #include <ttc-log.h>
 
+static command_opt_t echo_opts[] = { 
+	{.name = "channel", .description = "Channel message is from", .required = 0, .type = DiscordOptionChannel },
+	{.name = "message", .description = "Message to edit", .required = 0, .type = DiscordOptionString },
+};
 
 static command_t echo = { .name = "echo", .description = "Echos it's input", .type = 1,
-	.options = NULL, .option_count = 0};
+	.options = echo_opts, .option_count = 2};
 
 static command_opt_t userinfo_opts = { .name = "User", .description = "User to get info for",
 	.type = 6, .required = 1 };

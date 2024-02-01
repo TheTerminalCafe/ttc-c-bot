@@ -33,7 +33,7 @@ json_object *ttc_discord_form_to_json(ttc_discord_modal_t *modal) {
 	json_object *object, *title, *id, *fields[5], *field_ids[5], 
 				*field_labels[5], *field_style[5], *field_types[5],
 				*action_row[5], *ar_type[5], *components, *ar_components[5],
-				*required[5];
+				*required[5], *field_values[5];
 	
 	for(size_t ind = 0; ind < modal->field_count; ind++) {
 		/*This function is intended to construct
@@ -63,13 +63,15 @@ json_object *ttc_discord_form_to_json(ttc_discord_modal_t *modal) {
 		field_types[ind] = json_object_new_int(modal->fields[ind].type);
 		field_labels[ind] = json_object_new_string(modal->fields[ind].label);
 		required[ind] = json_object_new_boolean(modal->fields[ind].required);
+		field_values[ind] = json_object_new_string(modal->fields[ind].value);	
 
 		json_object_object_add(fields[ind], "label", field_labels[ind]);
 		json_object_object_add(fields[ind], "style", field_style[ind]);
 		json_object_object_add(fields[ind], "type", field_types[ind]);
 		json_object_object_add(fields[ind], "custom_id", field_ids[ind]);
-		json_object_object_add(fields[ind], "required", field_ids[ind]);
-		
+		json_object_object_add(fields[ind], "required", required[ind]);
+		json_object_object_add(fields[ind], "value", field_values[ind]);
+
 		json_object_array_add(ar_components[ind], fields[ind]);
 		
 		json_object_object_add(action_row[ind], "type", ar_type[ind]);

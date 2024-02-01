@@ -70,8 +70,6 @@ int discord_get_user_position(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid
 	TTC_LOG_DEBUG("%lu guild roles\n%s\n%s\n", gid, response->headers, response->data);
 	roles = json_tokener_parse(response->data);
 	
-	ttc_http_response_free(response);
-
 	for(size_t index = 0; index < json_object_array_length(mroles); index++) {
 		json_object *mrole_id = json_object_array_get_idx(mroles, index);
 

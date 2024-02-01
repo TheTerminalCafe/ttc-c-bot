@@ -1,3 +1,4 @@
+#include "ttc-discord/api.h"
 #include <ttc-discord/interaction.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/moderation.h>
@@ -9,6 +10,9 @@ void echo_handle(ttc_discord_interaction_t *interaction,
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	json_object *object, *data, *message, *type;
+	ttc_discord_embed_t embed;
+	ttc_discord_message_extract_embed(ctx, 913091622592458833, 1202563166282973195,
+			&embed);
 
 	modal.id = "embed_modal";
 	modal.field_count = 4;
@@ -17,19 +21,36 @@ void echo_handle(ttc_discord_interaction_t *interaction,
 	modal.fields[0].label = "Embed title:";
 	modal.fields[0].type = DiscordComponentTextInput;
 	modal.fields[0].style = DiscordTextInputSingleLine;
+	modal.fields[0].value = embed.title;
+	modal.fields[0].required = true;
+
 	modal.fields[1].id = "embed_desc";
 	modal.fields[1].label = "Embed Desc:";
 	modal.fields[1].type = DiscordComponentTextInput;
 	modal.fields[1].style = DiscordTextInputParagraph;
+	modal.fields[1].value = embed.description;
+	modal.fields[1].required = true;
+	
 	modal.fields[2].id = "embed_channel";
 	modal.fields[2].label = "Channel ID:";
 	modal.fields[2].type = DiscordComponentTextInput;
 	modal.fields[2].style = DiscordTextInputSingleLine;
+	modal.fields[2].value = "a";
+	modal.fields[2].required = true;
+	
 	modal.fields[3].id = "embed_color";
 	modal.fields[3].label = "Color(0xff8080):";
 	modal.fields[3].type = DiscordComponentTextInput;
 	modal.fields[3].style = DiscordTextInputSingleLine;
 	modal.fields[3].required = false;
+	
+	modal.fields[3].id = "old_message";
+	modal.fields[3].label = "Message ID To Edit:";
+	modal.fields[3].type = DiscordComponentTextInput;
+	modal.fields[3].style = DiscordTextInputSingleLine;
+	modal.fields[3].required = false;
+	modal.fields[3].value = "d";
+
 
 
 	object = ttc_discord_form_to_json(&modal);

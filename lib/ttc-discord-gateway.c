@@ -277,6 +277,7 @@ void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc
 		content = json_object_new_string("Channel ID has to be number!");
 
 	} else if (message_id) {
+
 	} else {
 		content = json_object_new_string("You embed is created!");
 		ttc_discord_send_embed(&embed, ctx, channel_id);

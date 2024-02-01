@@ -35,6 +35,8 @@ typedef enum {
 	DiscordButtonLink = 5
 } DISCORD_BUTTON_STYLES;
 
+int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, snowflake_t mid,
+		ttc_discord_embed_t *embed);	
 json_object *ttc_discord_form_to_json(ttc_discord_modal_t *modal);
 
 json_object *discord_get_guild_member(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid);
