@@ -27,7 +27,7 @@ int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *ti
 
 int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ctx, 
 		void (*callback)(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url)) {
-	json_object *command_json, *name, *type, *description, *options;
+	json_object *command_json, *name, *type, *description, *options, *allow_in_dms;
 	json_object *option_names[25], *option_desc[25], *option_type[25], *required[25],
 				*option_objs[25];
 	ttc_http_request_t *request;
@@ -39,6 +39,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	name = json_object_new_string(command->name);
 	description = json_object_new_string(command->description);
 	type = json_object_new_int(command->type);
+	allow_in_dms = json_object_new_boolean(command->allow_in_dms);
 	options = json_object_new_array();
 	
 	/*construct the options from the struct*/
@@ -63,7 +64,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	json_object_object_add(command_json, "type", type);
 	json_object_object_add(command_json, "description", description);
 	json_object_object_add(command_json, "options", options);
-
+	json_object_object_add(command_json, "dm_permission", allow_in_dms);
 
 	int length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(command_json)));
 

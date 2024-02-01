@@ -66,6 +66,7 @@ typedef struct command {
 	char *description;
 	command_opt_t *options;
 	int option_count;
+	bool allow_in_dms;
 } command_t;
 
 int ttc_discord_run(ttc_discord_ctx_t *ctx);
