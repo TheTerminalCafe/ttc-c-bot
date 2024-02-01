@@ -263,8 +263,9 @@ void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc
 			channel_id = strtoull(interaction->data.modal->fields[i].value, NULL, 10);
 		} else if(strcmp(interaction->data.modal->fields[i].id, "embed_color") == 0) {
 			embed.color = strtoull(interaction->data.modal->fields[i].value, NULL, 16);
-		} else if(strcmp(interaction->data.modal->fields[i].id, "previous_message") == 0) {
-			message_id = strtoull(interaction->data.modal->fields[i].value, NULL, 16);
+		} else if(strcmp(interaction->data.modal->fields[i].id, "old_message") == 0) {
+			printf("Message id: %s\n", interaction->data.modal->fields[i].value);
+			message_id = strtoull(interaction->data.modal->fields[i].value, NULL, 10);
 		}
 	}
 	
@@ -277,7 +278,8 @@ void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc
 		content = json_object_new_string("Channel ID has to be number!");
 
 	} else if (message_id) {
-
+		content = json_object_new_string("Your message is edited");
+		ttc_discord_edit_embed(&embed, ctx, channel_id, message_id);
 	} else {
 		content = json_object_new_string("You embed is created!");
 		ttc_discord_send_embed(&embed, ctx, channel_id);
@@ -409,6 +411,7 @@ ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
 		modal->fields[ind].id = strdup(json_object_get_string(json_object_object_get(component, "custom_id")));
 		modal->fields[ind].value = strdup(json_object_get_string(json_object_object_get(component, "value")));
 	}
+
 	
 	modal->field_count = json_object_array_length(components);
 
