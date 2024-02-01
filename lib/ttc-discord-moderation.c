@@ -109,7 +109,7 @@ int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid,
 	TTC_LOG_DEBUG("Ban response Data: %s\n", response->data);
 	TTC_LOG_DEBUG("Ban Response Headers: %s\n", response->headers);
 
-
+	json_object_put(ban_json);
 	ttc_http_response_free(response);
 	ttc_http_request_free(request);
 	free(url);
