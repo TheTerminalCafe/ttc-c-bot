@@ -16,39 +16,42 @@
 #include <ttc-http.h>
 #include <ttc-log.h>
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 static command_opt_t echo_opts[] = { 
 	{.name = "channel", .description = "Channel message is from", .required = 0, .type = DiscordOptionChannel },
 	{.name = "message", .description = "Message to edit", .required = 0, .type = DiscordOptionString },
 };
 
 static command_t echo = { .name = "echo", .description = "Echos it's input", .type = 1,
-	.options = echo_opts, .option_count = 2, .allow_in_dms = false };
+	.options = echo_opts, .option_count = 2, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN };
 
 static command_opt_t userinfo_opts = { .name = "User", .description = "User to get info for",
 	.type = DiscordOptionUser, .required = 1 };
 static command_t userinfo = { .name = "userinfo", .description = "get a users info", .type = 1,
-	.option_count = 1, .options = &userinfo_opts, .allow_in_dms = false };
+	.option_count = 1, .options = &userinfo_opts, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN };
 
 static command_opt_t ban_opts[] = { 
 	{ .name = "user", .description = "user to ban", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason", .type = DiscordOptionString, .required = 0 },
 	{ .name = "seconds", .description = "seconds to delete of messages", .type = DiscordOptionInteger, .required = 0 },
 };
-static command_t ban = { .name = "ban", .description = "kick user", .type = 1, .options = ban_opts, .option_count = 3, .allow_in_dms = false };
+static command_t ban = { .name = "ban", .description = "kick user", .type = 1, .options = ban_opts, .option_count = 3, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN };
 
 static command_opt_t kick_opts[] = { 
 	{ .name = "user", .description = "user to kick", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason for kick", .type = DiscordOptionString, .required = 0 },
 };
 
-static command_t kick = { .name = "kick", .description = "kick user", .type = 1, .options = kick_opts, .option_count = 2, .allow_in_dms = false };
+static command_t kick = { .name = "kick", .description = "kick user", .type = 1, .options = kick_opts, .option_count = 2, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_KICK };
 
 static command_opt_t pardon_opts[] = { 
 	{ .name = "user", .description = "user to pardon", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason for pardon", .type = DiscordOptionString, .required = 0 },
 };
 
-static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2, .allow_in_dms = false };
+static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN };
 
 static command_opt_t timeout_opts[] = {
 	{ .name = "user", .description = "user to timeout", .type = DiscordOptionUser, .required = 1 },
@@ -56,7 +59,7 @@ static command_opt_t timeout_opts[] = {
 	{ .name = "reason", .description = "reason for timeout", .type = DiscordOptionString, .required = 0 }
 };
 
-static command_t timeout = { .name = "timeout", .description = "timeout member", .type = 1, .options = timeout_opts, .option_count = 3, .allow_in_dms = false };
+static command_t timeout = { .name = "timeout", .description = "timeout member", .type = 1, .options = timeout_opts, .option_count = 3, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_KICK };
 
 int main() {
 	ttc_log_set_level(TtcLogAll);

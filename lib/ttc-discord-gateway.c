@@ -466,7 +466,11 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 
 	found = json_object_object_get_ex(interaction, "application_id", &object);
 	output->app_id = strtoull(json_object_get_string(object), NULL, 10);
-
+	
+	found = json_object_object_get_ex(interaction, "app_permissions", &object);
+	if(found) {
+		output->app_permission = strtoull(json_object_get_string(object), NULL, 10);
+	}
 
 	json_object_object_get_ex(interaction, "type", &object);
 	output->type = json_object_get_int64(object);

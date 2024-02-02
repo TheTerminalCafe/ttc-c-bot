@@ -27,21 +27,36 @@ int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *ti
 
 int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ctx, 
 		void (*callback)(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url)) {
-	json_object *command_json, *name, *type, *description, *options, *allow_in_dms;
+	json_object *command_json, *name, *type, *description, *options, *allow_in_dms,
+				*default_permissions;
 	json_object *option_names[25], *option_desc[25], *option_type[25], *required[25],
 				*option_objs[25];
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	char *length_str, *url; 
-	int result;
+	char *length_str, *url, *permissions; 
+	int result, length;
+
+	length = snprintf(NULL, 0, "%lu", command->default_permissions);
+
+	permissions = calloc(1, length + 1);
+	if(!permissions) {
+		TTC_LOG_DEBUG("Allocating Length string failed\n");
+		return -1;
+	}
+
+	snprintf(permissions, length + 1, "%lu", command->default_permissions);
+
+
 
 	command_json = json_object_new_object();
 	name = json_object_new_string(command->name);
 	description = json_object_new_string(command->description);
 	type = json_object_new_int(command->type);
 	allow_in_dms = json_object_new_boolean(command->allow_in_dms);
+	default_permissions = json_object_new_string(permissions);
 	options = json_object_new_array();
 	
+
 	/*construct the options from the struct*/
 	for(int i = 0; i < command->option_count; i++) {
 		if(i >= 25) {
@@ -65,8 +80,9 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	json_object_object_add(command_json, "description", description);
 	json_object_object_add(command_json, "options", options);
 	json_object_object_add(command_json, "dm_permission", allow_in_dms);
+	json_object_object_add(command_json, "default_member_permissions", default_permissions);
 
-	int length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(command_json)));
+	length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(command_json)));
 
 	length_str = calloc(1, length + 1);
 	if(!length_str) {
@@ -115,6 +131,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 
 	ttc_http_response_free(response);
 	ttc_http_request_free(request);
+	free(permissions);
 	free(url);
 	free(length_str);
 	json_object_put(command_json);

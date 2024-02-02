@@ -67,6 +67,7 @@ typedef struct command {
 	command_opt_t *options;
 	int option_count;
 	bool allow_in_dms;
+	uint64_t default_permissions;
 } command_t;
 
 int ttc_discord_run(ttc_discord_ctx_t *ctx);

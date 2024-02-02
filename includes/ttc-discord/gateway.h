@@ -183,7 +183,7 @@ typedef struct ttc_discord_interaction_s {
 	char *token; /**Interaction Token*/
 	uint32_t version; /**readonly discord says this is always 1*/
 	void *message; /**TODO: OPTIONAL for components message was attached to*/
-	char *app_permission; /**Bitwise set of perms of bot in channel OPTIONAL*/
+	uint64_t app_permission; /**Bitwise set of perms of bot in channel OPTIONAL*/
 	char *locale; /**Users local not present on PING interactions*/
 	char *guild_locale; /**Guild locale if command called in guild*/
 	void *entitlements; /**Yucky discord montesitation*/

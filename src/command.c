@@ -120,23 +120,19 @@ void kick_handle(ttc_discord_interaction_t *interaction,
 	 * respond with a loading status and follow up later*/
 	ttc_discord_interaction_loading(ctx, url);
 
-	if(interaction->guild_id == 0) {
-		TTC_LOG_WARN("Guild id not set was this ban sent in a DM?\n");
-		ttc_discord_interaction_loading_respond(ctx, "This is a DM?", "You can't ban us from DMS!",
-				0xff0000, interaction);
-		return;
-	}
-
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
 		GET_COMMAND_ARGUMENT_USER(option, "user", user_id);
 		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
-
-	if(!(interaction->member.permission & (DISCORD_PERMISSION_KICK | DISCORD_PERMISSION_ADMIN))) {
-		TTC_LOG_WARN("User <@%lu> does not have kick perms\n", interaction->member.user.id);
-		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "You don't have kick perms for this GUILD!", 0xff0000, interaction);
+	
+	/* Discord will avoid exporting these to users that do not have permissions to get a
+	 * "nice" error for the bot we are going to check if the bot has permission
+	 */
+	if(!(interaction->app_permission & (DISCORD_PERMISSION_KICK | DISCORD_PERMISSION_ADMIN))) {
+		TTC_LOG_WARN("Bot does not have kick perms\n");
+		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "The bot doesn't have kick perms for this guild!", 0xff0000, interaction);
 		return;
 	}
 
@@ -145,7 +141,6 @@ void kick_handle(ttc_discord_interaction_t *interaction,
 		TTC_LOG_WARN("No user id provided or invalid ID given\n");
 		return;
 	}
-
 
 	if(user_id == interaction->member.user.id) {
 		TTC_LOG_WARN("User tried to ban themselves\n");
@@ -202,13 +197,6 @@ void pardon_handle(ttc_discord_interaction_t *interaction,
 	 * respond with a loading status and follow up later*/
 	ttc_discord_interaction_loading(ctx, url);
 
-	if(interaction->guild_id == 0) {
-		TTC_LOG_WARN("Guild id not set was this command sent in a DM?\n");
-		ttc_discord_interaction_loading_respond(ctx, "This is a DM?", "You can't call this command in DMS!",
-				0xff0000, interaction);
-		return;
-	}
-
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
@@ -216,9 +204,9 @@ void pardon_handle(ttc_discord_interaction_t *interaction,
 		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
-	if(!(interaction->member.permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
-		TTC_LOG_WARN("User <@%lu> does not have unban perms\n", interaction->member.user.id);
-		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "You don't have unban perms for this GUILD!", 0xff0000, interaction);
+	if(!(interaction->app_permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
+		TTC_LOG_WARN("Bot does not have ban/unban perms\n");
+		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "The bot doesn't have unban perms for this guild!", 0xff0000, interaction);
 		return;
 	}
 
@@ -262,13 +250,6 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 	 * respond with a loading status and follow up later*/
 	ttc_discord_interaction_loading(ctx, url);
 
-	if(interaction->guild_id == 0) {
-		TTC_LOG_WARN("Guild id not set was this ban sent in a DM?\n");
-		ttc_discord_interaction_loading_respond(ctx, "This is a DM?", "You can't ban us from DMS!",
-				0xff0000, interaction);
-		return;
-	}
-
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
@@ -277,9 +258,9 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
-	if(!(interaction->member.permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
-		TTC_LOG_WARN("User <@%lu> does not have ban perms\n", interaction->member.user.id);
-		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "You don't have ban perms for this GUILD!", 0xff0000, interaction);
+	if(!(interaction->app_permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
+		TTC_LOG_WARN("Bot does not have ban/unban perms\n");
+		ttc_discord_interaction_loading_respond(ctx, "Permission Denied!", "The bot doesn't have ban perms for this guild!", 0xff0000, interaction);
 		return;
 	}
 
@@ -310,9 +291,9 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 		return;
 	}
 
-	TTC_LOG_DEBUG("Ban HTTP status code: %d\n", result);
 	result = ttc_discord_ban_member(ctx, user_id, interaction->guild_id, reason, seconds);
-
+	TTC_LOG_DEBUG("Ban HTTP status code: %d\n", result);
+	
 	if(result == 204) {
 		char *fmt = "The user <@%lu> has been banned!\n";
 		snprintf(buffer, 101, fmt, user_id);
