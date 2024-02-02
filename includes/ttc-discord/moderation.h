@@ -36,4 +36,17 @@ int ttc_discord_pardon_member(ttc_discord_ctx_t *ctx, uint64_t uid,
  */
 int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid, 
 		uint64_t gid, char *reason, uint32_t seconds);
-	
+
+/**
+ * @brief disable communication of a member until a timestamp
+ * @param ctx is a pointer ot the discord context
+ * @param uid is the user id of the account whose communication should be disabled
+ * @param gid is the guild id that should be used
+ * @param end_timestamp is ISO8601 timestamp until when the communication should be disabled.
+ *				It can only be up to 28 days in the future
+ * @param reason to show in the audit log. Can be NULL
+ *	
+ * @return http status code of the request
+ */
+int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, uint64_t uid,
+		uint64_t gid, const char *end_timestamp, const char *reason);

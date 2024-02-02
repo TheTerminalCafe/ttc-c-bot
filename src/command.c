@@ -327,3 +327,71 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 	}
 }
 
+static void generate_iso8601_string(char* result, time_t time_unix) {
+	struct tm time_tm;
+	gmtime_r(&time_unix, &time_tm);
+	snprintf(result, 21, "%04d-%02d-%02dT%02d:%02d:%02dZ", time_tm.tm_year + 1900,
+					 time_tm.tm_mon + 1, time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min,
+					 time_tm.tm_sec);
+}
+
+static void add_time_to_unix_timestamp(time_t* time, int seconds, int minutes,
+																			 int hours, int days) {
+	*time += seconds + 60 * minutes + 3600 * hours + 86400 * days;
+}
+
+void timeout_handle(ttc_discord_interaction_t* interaction,
+										ttc_discord_ctx_t* ctx, const char* url) {
+
+	ttc_discord_interaction_loading(ctx, url);
+
+	uint64_t target_user = 0;
+	uint8_t days;
+	int64_t days_raw;
+	char* reason = NULL;
+
+	ttc_discord_app_cmd_data_t* command = interaction->data.command;
+	for (size_t i = 0; i < command->opt_count; ++i) {
+		ttc_discord_app_cmd_opt_t* option = &command->options[i];
+		GET_COMMAND_ARGUMENT_USER(option, "user", target_user);
+		GET_COMMAND_ARGUMENT_INT(option, "days_to_timeout", days_raw);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
+	}
+
+	// TODO: Add permission checks!
+
+	if (days_raw > 28 || days_raw < 0) {
+		ttc_discord_interaction_loading_respond(ctx, "Unable to timeout user!",
+																						"You provided either less than 0 days or more than 28 days",
+																						0xff0000, interaction);
+		return;
+	}
+	days = (uint8_t) days_raw;
+
+	time_t target_time = time(NULL);
+	add_time_to_unix_timestamp(&target_time, 0, 0, 0, days);
+
+	char time_str[21];
+	generate_iso8601_string(time_str, target_time);
+
+	int result = ttc_discord_timeout_member(
+			ctx, target_user, interaction->guild_id, time_str, reason);
+	if (result == 200) {
+		char buf[101];
+		snprintf(buf, 101,
+						 "The user <@%" PRIu64 "> is timeouted for %" PRIu8 " days",
+						 target_user, days);
+
+		ttc_discord_interaction_loading_respond(ctx, "User timed out!", buf,
+																						0x00ff00, interaction);
+	} else {
+		char buf[101];
+		snprintf(buf, 101,
+						 "The user <@%" PRIu64
+						 "> is couldn't be timeouted. HTTP response: %d",
+						 target_user, result);
+
+		ttc_discord_interaction_loading_respond(ctx, "Unable to timeout user!", buf,
+																						0xff0000, interaction);
+	}
+}
