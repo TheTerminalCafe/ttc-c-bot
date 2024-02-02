@@ -11,6 +11,7 @@
 #include <ttc-discord/moderation.h>
 #include <ttc-discord/gateway.h>
 #include <ttc-discord/commands.h>
+#include "modals.h"
 #include "command.h"
 #include <stdio.h>
 #include <ttc-http.h>
@@ -70,8 +71,9 @@ int main() {
 	discord_create_application_command(&kick, discord, kick_handle);	
 	discord_create_application_command(&pardon, discord, pardon_handle);	
 	discord_create_application_command(&ban, discord, ban_handle);
-	// Disabled due to missing permission checks
-	// discord_create_application_command(&timeout, discord, timeout_handle);
+	discord_create_application_command(&timeout, discord, timeout_handle);
+
+	ttc_discord_add_modal_listener(discord, "embed_modal", ttc_embed_modal_submit);
 
 	ttc_discord_run(discord);
 

@@ -34,5 +34,12 @@ struct _ttc_discord_ctx_s {
 
 	cmd_listeners_t *command_callbacks;
 	uint64_t callbacks;
+
+	cmd_listeners_t *modal_callbacks;
+	uint64_t modals;
+
+	cmd_listeners_t *components_callbacks;
+	uint64_t components;
+
 	uint64_t heart_interval;
 };
