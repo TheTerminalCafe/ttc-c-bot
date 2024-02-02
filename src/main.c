@@ -22,33 +22,33 @@ static command_opt_t echo_opts[] = {
 };
 
 static command_t echo = { .name = "echo", .description = "Echos it's input", .type = 1,
-	.options = echo_opts, .option_count = 2};
+	.options = echo_opts, .option_count = 2, .allow_in_dms = false };
 
 static command_opt_t userinfo_opts = { .name = "User", .description = "User to get info for",
 	.type = DiscordOptionUser, .required = 1 };
 static command_t userinfo = { .name = "userinfo", .description = "get a users info", .type = 1,
-	.option_count = 1, .options = &userinfo_opts };
+	.option_count = 1, .options = &userinfo_opts, .allow_in_dms = false };
 
 static command_opt_t ban_opts[] = { 
 	{ .name = "user", .description = "user to ban", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason", .type = DiscordOptionString, .required = 0 },
 	{ .name = "seconds", .description = "seconds to delete of messages", .type = DiscordOptionInteger, .required = 0 },
 };
-static command_t ban = { .name = "ban", .description = "kick user", .type = 1, .options = ban_opts, .option_count = 3 };
+static command_t ban = { .name = "ban", .description = "kick user", .type = 1, .options = ban_opts, .option_count = 3, .allow_in_dms = false };
 
 static command_opt_t kick_opts[] = { 
 	{ .name = "user", .description = "user to kick", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason for kick", .type = DiscordOptionString, .required = 0 },
 };
 
-static command_t kick = { .name = "kick", .description = "kick user", .type = 1, .options = kick_opts, .option_count = 2 };
+static command_t kick = { .name = "kick", .description = "kick user", .type = 1, .options = kick_opts, .option_count = 2, .allow_in_dms = false };
 
 static command_opt_t pardon_opts[] = { 
 	{ .name = "user", .description = "user to pardon", .type = DiscordOptionUser, .required = 1 },
 	{ .name = "reason", .description = "reason for pardon", .type = DiscordOptionString, .required = 0 },
 };
 
-static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2 };
+static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2, .allow_in_dms = false };
 
 int main() {
 	ttc_log_set_level(TtcLogAll);
