@@ -117,14 +117,14 @@ int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid,
 	return result;
 }
 
-int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, snowflake_t uid,
-		snowflake_t gid, const char* end_timestamp, const char *reason) {
+int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, snowflake_t uid, snowflake_t gid,
+															 const char *end_timestamp, const char *reason) {
 	ttc_http_request_t *request = NULL;
 	ttc_http_response_t *response = NULL;
 	json_object *root = NULL, *end_timestamp_json = NULL;
 	ttc_discord_embed_t embed;
 	int16_t result = 0;
-	const char *format = "/api/v10/guilds/%"PRIu64"/members/%"PRIu64;
+	const char *format = "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64;
 
 	char *url = NULL;
 
@@ -136,11 +136,11 @@ int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, snowflake_t uid,
 	end_timestamp_json = json_object_new_string(end_timestamp);
 	json_object_object_add(root, "communication_disabled_until", end_timestamp_json);
 
-	request = ttc_http_new_request();	
+	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_PATCH);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
-	if(reason) {
+	if (reason) {
 		ttc_http_request_add_header(request, "X-Audit-Log-Reason", reason);
 	}
 

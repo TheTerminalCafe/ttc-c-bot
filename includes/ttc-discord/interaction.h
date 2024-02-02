@@ -22,12 +22,12 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
  * @param searched_name this is how the field from the command is called
  * @param result_var name of the variable where the result should be stored
  */
-#define GET_COMMAND_ARGUMENT_STRING(option, searched_name, result_var)                  \
-  do {                                                                         \
-    if (!strcmp(option->name, searched_name)) {                                \
-      result_var = option->value.string;                                       \
-    }                                                                          \
-  } while (0)
+#define GET_COMMAND_ARGUMENT_STRING(option, searched_name, result_var)                             \
+	do {                                                                                             \
+		if (!strcmp(option->name, searched_name)) {                                                    \
+			result_var = option->value.string;                                                           \
+		}                                                                                              \
+	} while (0)
 
 /**
  * @brief extract integer from inside option loop
@@ -35,12 +35,12 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
  * @param searched_name this is how the field from the command is called
  * @param result_var name of the variable where the result should be stored
  */
-#define GET_COMMAND_ARGUMENT_INT(option, searched_name, result_var)                     \
-  do {                                                                         \
-    if (!strcmp(option->name, searched_name)) {                                \
-      result_var = option->value.integer;                                      \
-    }                                                                          \
-  } while (0)
+#define GET_COMMAND_ARGUMENT_INT(option, searched_name, result_var)                                \
+	do {                                                                                             \
+		if (!strcmp(option->name, searched_name)) {                                                    \
+			result_var = option->value.integer;                                                          \
+		}                                                                                              \
+	} while (0)
 
 /**
  * @brief extract user snowflake from inside option loop
@@ -48,9 +48,9 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
  * @param searched_name this is how the field from the command is called
  * @param result_var name of the variable where the result should be stored
  */
-#define GET_COMMAND_ARGUMENT_USER(option, searched_name, result_var)                    \
-  do {                                                                         \
-    if (!strcmp(option->name, searched_name)) {                                \
-      result_var = (snowflake_t) strtoull(option->value.string, NULL, 10);        \
-    }                                                                          \
-  } while (0)
+#define GET_COMMAND_ARGUMENT_USER(option, searched_name, result_var)                               \
+	do {                                                                                             \
+		if (!strcmp(option->name, searched_name)) {                                                    \
+			result_var = (snowflake_t) strtoull(option->value.string, NULL, 10);                         \
+		}                                                                                              \
+	} while (0)

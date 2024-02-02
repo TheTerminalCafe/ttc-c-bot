@@ -55,13 +55,25 @@ static command_opt_t pardon_opts[] = {
 static command_t pardon = { .name = "pardon", .description = "unban user", .type = 1, .options = pardon_opts, .option_count = 2, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN };
 
 static command_opt_t timeout_opts[] = {
-	{ .name = "user", .description = "user to timeout", .type = DiscordOptionUser, .required = 1 },
-	{ .name = "days_to_timeout", .description = "number of days to timeout", .type = DiscordOptionInteger, .required = 1 },
-	{ .name = "reason", .description = "reason for timeout", .type = DiscordOptionString, .required = 0 }
-};
+		{.name = "user", .description = "user to timeout", .type = DiscordOptionUser, .required = 1},
+		{.name = "days_to_timeout",
+		 .description = "number of days to timeout",
+		 .type = DiscordOptionInteger,
+		 .required = 1},
+		{.name = "reason",
+		 .description = "reason for timeout",
+		 .type = DiscordOptionString,
+		 .required = 0}};
 
-static command_t timeout = { .name = "timeout", .description = "timeout member", .type = 1, .options = timeout_opts, .option_count = 3, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_KICK };
-
+static command_t timeout = {.name = "timeout",
+														.description = "timeout member",
+														.type = 1,
+														.options = timeout_opts,
+														.option_count = 3,
+														.allow_in_dms = false,
+														.default_permissions = DISCORD_PERMISSION_ADMIN |
+																									 DISCORD_PERMISSION_BAN |
+																									 DISCORD_PERMISSION_KICK};
 
 int ttc_discord_create_text_input(ttc_discord_ctx_t *ctx, uint32_t type,
 		const char *menu_id, uint64_t channel);

@@ -46,8 +46,8 @@ int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid,
  * @param end_timestamp is ISO8601 timestamp until when the communication should be disabled.
  *				It can only be up to 28 days in the future
  * @param reason to show in the audit log. Can be NULL
- *	
+ *
  * @return http status code of the request
  */
-int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, uint64_t uid,
-		uint64_t gid, const char *end_timestamp, const char *reason);
+int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid,
+															 const char *end_timestamp, const char *reason);
