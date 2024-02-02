@@ -22,11 +22,8 @@ void echo_handle(ttc_discord_interaction_t *interaction,
 
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
-		if(strcmp("channel", option->name) == 0) {
-			channel_id = option->value.string;
-		} else if(strcmp("message", option->name) == 0) {
-			message_id = option->value.string;
-		} 
+		GET_COMMAND_ARGUMENT_STRING(option, "channel", channel_id);
+		GET_COMMAND_ARGUMENT_STRING(option, "message", message_id);
 	}
 	if(message_id && channel_id) {
 		mid = strtoull(message_id, NULL, 10);
@@ -133,11 +130,8 @@ void kick_handle(ttc_discord_interaction_t *interaction,
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
-		if(strcmp("user", option->name) == 0) {
-			user_id = strtoull(option->value.string, NULL, 10);
-		} else if(strcmp("reason", option->name) == 0) {
-			reason = option->value.string;
-		}
+		GET_COMMAND_ARGUMENT_USER(option, "user", user_id);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
 	if(!(interaction->member.permission & (DISCORD_PERMISSION_KICK | DISCORD_PERMISSION_ADMIN))) {
@@ -218,11 +212,8 @@ void pardon_handle(ttc_discord_interaction_t *interaction,
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
-		if(strcmp("user", option->name) == 0) {
-			user_id = strtoull(option->value.string, NULL, 10);
-		} else if(strcmp("reason", option->name) == 0) {
-			reason = option->value.string;
-		}
+		GET_COMMAND_ARGUMENT_USER(option, "user", user_id);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
 	if(!(interaction->member.permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
@@ -281,13 +272,9 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 	/*Look for optional arguments we support*/
 	for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 		option = &interaction->data.command->options[ind];
-		if(strcmp("user", option->name) == 0) {
-			user_id = strtoull(option->value.string, NULL, 10);
-		} else if(strcmp("seconds", option->name) == 0) {
-			seconds = option->value.integer;
-		} else if(strcmp("reason", option->name) == 0) {
-			reason = option->value.string;
-		}
+		GET_COMMAND_ARGUMENT_USER(option, "user", user_id);
+		GET_COMMAND_ARGUMENT_INT(option, "seconds", seconds);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
 	if(!(interaction->member.permission & (DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_ADMIN))) {
