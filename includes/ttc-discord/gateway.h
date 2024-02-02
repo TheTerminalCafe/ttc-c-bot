@@ -131,7 +131,8 @@ typedef struct ttc_discord_member_s {
 	ttc_discord_user_t user;
 	char *nickname;
 	char *avatar;
-	snowflake_t *role_ids;
+	char **roles;
+	size_t role_count;
 	/*TODO: TIMESTAMPS*/
 	bool deaf;
 	bool mute;
@@ -156,6 +157,16 @@ struct ttc_discord_app_cmd_opt_s {
 	bool focused;
 };
 
+typedef struct ttc_discord_component_data {
+	uint32_t type;
+	char *id;
+	size_t count;
+	char **values; /*Technically if these where roles,
+					*Channels or users ids we could store
+					*them as uint 64 but string is also possible
+					*/
+} ttc_discord_component_data_t;
+
 typedef struct ttc_discord_app_cmd_data {
 	 snowflake_t id; /**< Command id*/
 	 char name[DISCORD_COMMAND_NAME_LENGTH + 1]; /**Discord say 1-32 char length name so + 1 for NULL*/
@@ -172,13 +183,14 @@ typedef struct ttc_discord_interaction_s {
 	snowflake_t app_id; /**Id of app interaction is for*/
 	DISCORD_INTERACTION_TYPE type;
 	union {
+		ttc_discord_component_data_t *component;
 		ttc_discord_modal_t *modal;
 		ttc_discord_app_cmd_data_t *command;
 	} data; /*TODO OPTIONAL or rather will be NULL for Ping events*/
 	snowflake_t guild_id; /*OPTIONAL*/
 	void *channel; /*TODO OPTIONAL*/
 	snowflake_t channel_id; /*OPTIONAL*/
-	ttc_discord_member_t member;
+	ttc_discord_member_t *member;
 	ttc_discord_user_t user;
 	char *token; /**Interaction Token*/
 	uint32_t version; /**readonly discord says this is always 1*/

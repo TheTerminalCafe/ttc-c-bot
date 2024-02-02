@@ -44,8 +44,7 @@ int discord_get_user_position(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid
 
 json_object *ttc_discord_embed_to_json(ttc_discord_embed_t *embed);	
 
-int ttc_discord_create_button(ttc_discord_ctx_t *ctx);
-
+int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64_t rid, const char *method);
 ttc_http_response_t *ttc_discord_api_send_request(ttc_discord_ctx_t *ctx, ttc_http_request_t *request);
 ttc_http_response_t *ttc_discord_api_send_json(ttc_discord_ctx_t *ctx, 
 		ttc_http_request_t *request, json_object *message);	

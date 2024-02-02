@@ -142,14 +142,14 @@ void kick_handle(ttc_discord_interaction_t *interaction,
 		return;
 	}
 
-	if(user_id == interaction->member.user.id) {
+	if(user_id == interaction->member->user.id) {
 		TTC_LOG_WARN("User tried to ban themselves\n");
 		ttc_discord_interaction_loading_respond(ctx, "No kicking yourself!", "Looks like you tried to kick yourself!", 0xff0000, interaction);
 		return;
 	}
 
 	target_position = discord_get_user_position(ctx, interaction->guild_id, user_id);	
-	caller_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member.user.id);
+	caller_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member->user.id);
 	bot_position = discord_get_user_position(ctx, interaction->guild_id, interaction->app_id);
 	
 	if(caller_position <= target_position) {
@@ -271,15 +271,15 @@ void ban_handle(ttc_discord_interaction_t *interaction,
 	}
 
 
-	if(user_id == interaction->member.user.id) {
+	if(user_id == interaction->member->user.id) {
 		TTC_LOG_WARN("User tried to ban themselves\n");
 		ttc_discord_interaction_loading_respond(ctx, "No banning oneself!", "Looks like you tried to ban yourself!", 0xff0000, interaction);
 		return;
 	}
 
 	target_position = discord_get_user_position(ctx, interaction->guild_id, user_id);	
-	caller_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member.user.id);
-	bot_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member.user.id);
+	caller_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member->user.id);
+	bot_position = discord_get_user_position(ctx, interaction->guild_id, interaction->member->user.id);
 	
 	if(caller_position <= target_position) {
 		ttc_discord_interaction_loading_respond(ctx, "You can't do this", "You can't ban this user as their permissions are the same as or greater than yours", 0xf80000, interaction);

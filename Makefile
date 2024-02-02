@@ -5,11 +5,11 @@
 CC=clang
 AR=ar
 CFLAGS=-O0 -g
-COBJS=lib/ttc-discord-embed.o lib/ttc-discord-utils.o lib/ttc-discord-api.o lib/ttc-discord-api-helpers.o lib/ttc-discord-interaction.o lib/ttc-discord-moderation.o lib/ttc-discord-messages.o lib/ttc-discord.o lib/ttc-discord-gateway.o lib/ttc-discord-commands.o lib/ttc-discord-modals.o
+COBJS=lib/ttc-discord-embed.o lib/ttc-discord-ui.o lib/ttc-discord-utils.o lib/ttc-discord-api.o lib/ttc-discord-api-helpers.o lib/ttc-discord-interaction.o lib/ttc-discord-moderation.o lib/ttc-discord-messages.o lib/ttc-discord.o lib/ttc-discord-gateway.o lib/ttc-discord-commands.o lib/ttc-discord-modals.o
 TARGET=ttc-discord.so
 TARGET_STATIC=ttc-discord.a
 EXAMPLE=ttc-bot
-EXAMPLESRC=src/main.c src/command.c src/modals.c
+EXAMPLESRC=src/main.c src/command.c src/modals.c src/components.c
 INCLUDES=-I includes
 LIBS=-lttc-http -lttc-ws -lttc-log -lssl -lcrypto -ljson-c
 

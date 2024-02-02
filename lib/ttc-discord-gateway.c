@@ -162,83 +162,16 @@ void handle_interaction_app_command(ttc_discord_interaction_t *interaction, ttc_
 }
 
 void handle_interaction_msg_component(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
-	json_object *id, *title, *components, *row, *submit,
-				*title_input, *sysinfo, *description,
-				*row_type, *title_type, *title_style,
-				*sysinfo_type, *sysinfo_style,
-				*desc_type, *desc_style, *title_id,
-				*label, *modal_id, *type, *response,
-				*catergory, *modal, *row_components;
-	char *length_str;
-	ttc_http_request_t *request;
-	ttc_http_response_t *http_response;
-
-	response = json_object_new_object();
-	type = json_object_new_int(9);
-
-	modal = json_object_new_object();
-	modal_id = json_object_new_string("ticket_modal");
-	json_object_object_add(modal, "custom_id", modal_id);
-	components = json_object_new_array();
-	json_object_object_add(modal, "components", components);
-
-	row_components = json_object_new_array();
-	id = json_object_new_string("ticket_submit");
-	row = json_object_new_object();
-	row_type = json_object_new_int(DiscordComponentActionRow);
+	uint64_t size;
+	TTC_LOG_DEBUG("Component Submitted: %s\n", interaction->data.component->id);
 	
-
-	json_object_object_add(row, "type", row_type);
-	json_object_object_add(row, "components", row_components);
-	json_object_array_add(components, row);
-
-	title_input = json_object_new_object();
-	title = json_object_new_string("Create Ticket:");
-	json_object_object_add(modal, "title", title);
-	label = json_object_new_string("Ticket Title:");
-	title_type = json_object_new_int(DiscordComponentTextInput);
-	title_style = json_object_new_int(DiscordTextInputSingleLine);
-	title_id = json_object_new_string("ticket_title");
-
-	json_object_object_add(title_input, "type", title_type);
-	json_object_object_add(title_input, "style", title_style);
-	json_object_object_add(title_input, "label", label);
-	json_object_object_add(title_input, "custom_id", title_id);
-	
-
-	json_object_array_add(row_components, title_input);
-	json_object_object_add(response, "type", type);
-	json_object_object_add(response, "data", modal);
-
-
-
-
-	int length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(response)));
-	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(response)));
-
-	request = ttc_http_new_request();
-	ttc_http_request_set_path(request, url);
-	ttc_http_request_set_http_version(request, HTTP_VER_11);
-	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
-	ttc_http_request_add_header(request, "Host", "discord.com");
-	ttc_http_request_add_header(request, "Authorization", ctx->api_token);
-	ttc_http_request_add_header(request, "Content-Type", "application/json");
-	ttc_http_request_add_header(request, "Content-Length", length_str);
-	ttc_http_request_add_header(request, "User-Agent", "DiscordBot (https://github.com/CaitCatDev, 1)");
-	ttc_http_request_add_data(request, json_object_to_json_string(response));
-	ttc_http_request_build(request);
-
-	ttc_https_request_send(request, ctx->api);
-	
-	TTC_LOG_INFO("Sending: %s\n", ttc_http_request_get_str(request));
-
-	http_response = ttc_https_get_response(ctx->api);
-	
-
-	json_object_put(response);
-	ttc_http_request_free(request);
-	free(length_str);
+	for(size = 0; size < ctx->components; size++) {
+		TTC_LOG_DEBUG("Component: %s\n", ctx->components_callbacks[size].name);
+		if(strcmp(ctx->components_callbacks[size].name, interaction->data.component->id) == 0) {
+			ctx->components_callbacks[size].cmd_callback(interaction, ctx, url);
+			return;
+		}
+	}
 }
 
 void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
@@ -348,6 +281,43 @@ static ttc_discord_app_cmd_data_t *ttc_discord_interaction_resolve_app_cmd_data(
 	return output;
 }
 
+ttc_discord_component_data_t *ttc_discord_interaction_resolve_component(json_object *data) {
+	ttc_discord_component_data_t *component;
+	json_object *array, *object;
+	size_t index = 0;
+
+	component = calloc(1, sizeof(ttc_discord_component_data_t));
+	
+	json_object_object_get_ex(data, "custom_id", &object);	
+	component->id = strdup(json_object_get_string(object));
+
+	json_object_object_get_ex(data, "component_type", &object);
+	component->type = json_object_get_uint64(object);
+	
+	/*It doesn't seem to be possible for ActionRow or TextInput to 
+	 * actually happen but I just have them here as a "better safe than sorry"
+	 * mentalitty
+	 */
+	if(component->type != DiscordComponentButton ||
+	   component->type != DiscordComponentTextInput || 
+	   component->type != DiscordComponentActionRow) {
+
+		json_object_object_get_ex(data, "values", &array);
+		component->count = json_object_array_length(array);
+		
+		/*allocate pointers for all the string dups*/
+		component->values = calloc(component->count, sizeof(char *));
+
+		for(index = 0; index < component->count; index++) {
+			object = json_object_array_get_idx(array, index);
+			component->values[index] = strdup(json_object_get_string(object));
+		}
+
+	}
+
+	return component;
+}
+
 ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
 	json_object *id, *components, *row_components, 
 				*component, *rows, *obj;
@@ -374,6 +344,21 @@ ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
 	return modal;
 }
 
+
+void ttc_discord_member_free(ttc_discord_member_t *member) {
+	if(member->role_count) {
+		member->roles = calloc(member->role_count, sizeof(char *));
+	
+
+		for(size_t index = 0; index < member->role_count; index++) {
+			free(member->roles[index]);
+		}
+		free(member->roles);
+	}
+
+	free(member);
+}
+
 void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 	switch (interaction->type) {
 		case DiscordInteractionAppCmd:
@@ -394,12 +379,61 @@ void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 			}
 			free(interaction->data.modal);
 			break;
+		case DiscordInteractionMsgComponent: {
+			ttc_discord_component_data_t *component = interaction->data.component;
+			if(component->type != DiscordComponentButton ||
+				component->type != DiscordComponentTextInput || 
+				component->type != DiscordComponentActionRow) {
+				for(size_t index = 0; index < component->count; index++) {
+					free(component->values[index]); /*Free each string*/
+				}
+				free(component->values); /*free the pointers*/
+			}
+			
+			free(component->id);
+			free(component);
+		}
+
 		default:
 			break;
 	}
 
+	ttc_discord_member_free(interaction->member);
 	free(interaction->token);
 	free(interaction);
+}
+
+ttc_discord_member_t *ttc_discord_member_json_to_struct(json_object *member) {
+	json_object *user, *array, *object;
+	json_bool found;
+	ttc_discord_member_t *output;
+
+	output = calloc(1, sizeof(ttc_discord_member_t));
+
+	found = json_object_object_get_ex(member, "user", &user);
+	output->user.id = strtoull(json_object_get_string(json_object_object_get(user, "id")), NULL, 10);
+	output->permission = strtoull(json_object_get_string(json_object_object_get(member, "permissions")), NULL, 10);
+	
+	/*we are storing the roles as strings as we would then need 
+	 * reparse them into strings when working with them.
+	 * and would need to parse the roles a user selects 
+	 * and it just gets to be a lot of parsing
+	 */
+	json_object_object_get_ex(member, "roles", &array);
+	output->role_count = json_object_array_length(array);
+	
+	/*allocate pointers for all the string dups*/
+	if(output->role_count) {
+		output->roles = calloc(output->role_count, sizeof(char *));
+	
+
+		for(size_t index = 0; index < output->role_count; index++) {
+			object = json_object_array_get_idx(array, index);
+			output->roles[index] = strdup(json_object_get_string(object));
+		}
+	}
+
+	return output;
 }
 
 ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *interaction) {
@@ -441,6 +475,8 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 			break;
 		case DiscordInteractionModalSubmit:
 			output->data.modal = ttc_discord_interaction_resolve_modal(object);
+		case DiscordInteractionMsgComponent:
+			output->data.component = ttc_discord_interaction_resolve_component(object);
 		default:
 			break;
 	}
@@ -449,9 +485,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 	output->guild_id = found ? strtoull(json_object_get_string(object), NULL, 10) : 0;
 	if(output->guild_id) {
 		found = json_object_object_get_ex(interaction, "member", &member);
-		found = json_object_object_get_ex(member, "user", &user);
-		output->member.user.id = strtoull(json_object_get_string(json_object_object_get(user, "id")), NULL, 10);
-		output->member.permission = strtoull(json_object_get_string(json_object_object_get(member, "permissions")), NULL, 10);
+		output->member = ttc_discord_member_json_to_struct(member);
 	}
 
 	found = json_object_object_get_ex(interaction, "channel", &object);

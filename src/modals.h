@@ -1,3 +1,4 @@
+#pragma once
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
 

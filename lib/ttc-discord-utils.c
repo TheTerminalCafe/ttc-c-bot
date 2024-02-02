@@ -1,10 +1,42 @@
+#include "ttc-discord/discord.h"
 #include <discord.h>
 
 #include <json-c/json_object.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <ttc-log.h>
 #include <ttc-http.h>
 #include <ttc-discord/api.h>
 
+int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64_t rid, const char *method) {
+	ttc_http_request_t *request;
+	ttc_http_response_t *response;	
+	const char *fmt = "/api/v10/guilds/%lu/members/%lu/roles/%lu";
+	char *url;
+	int length = 0, result;
+
+	length = snprintf(NULL, 0, fmt, gid, uid, rid);
+
+	url = calloc(1, length + 1);
+
+	snprintf(url, length + 1, fmt, gid, uid, rid);
+	
+	request = ttc_http_new_request();
+	ttc_http_request_set_path(request, url);
+	ttc_http_request_set_method(request, method);
+	ttc_http_request_set_http_version(request, HTTP_VER_11);
+	ttc_http_request_add_header(request, "Content-Length", "0");
+	response = ttc_discord_api_send_request(ctx, request);
+
+	result = response->status;
+	TTC_LOG_INFO("Reponse Role: %s\n", response->data);
+
+	free(url);
+	ttc_http_request_free(request);
+	ttc_http_response_free(response);
+	return result;
+}
 
 json_object *discord_get_guild_member(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid) {
 	ttc_http_request_t *get_member;

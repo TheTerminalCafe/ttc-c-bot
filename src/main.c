@@ -11,14 +11,14 @@
 #include <ttc-discord/moderation.h>
 #include <ttc-discord/gateway.h>
 #include <ttc-discord/commands.h>
-#include "modals.h"
-#include "command.h"
+#include <ttc-discord/ui.h>
 #include <stdio.h>
 #include <ttc-http.h>
 #include <ttc-log.h>
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
+#include "modals.h"
+#include "command.h"
+#include "components.h"
 
 static command_opt_t echo_opts[] = { 
 	{.name = "channel", .description = "Channel message is from", .required = 0, .type = DiscordOptionChannel },
@@ -62,6 +62,10 @@ static command_opt_t timeout_opts[] = {
 
 static command_t timeout = { .name = "timeout", .description = "timeout member", .type = 1, .options = timeout_opts, .option_count = 3, .allow_in_dms = false, .default_permissions = DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_BAN | DISCORD_PERMISSION_KICK };
 
+
+int ttc_discord_create_text_input(ttc_discord_ctx_t *ctx, uint32_t type,
+		const char *menu_id, uint64_t channel);
+
 int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
@@ -73,9 +77,13 @@ int main() {
 	discord_create_application_command(&ban, discord, ban_handle);
 	discord_create_application_command(&timeout, discord, timeout_handle);
 
+	ttc_discord_create_select_menu(discord, 6, "role_select", 913091622592458833, 25);
+
 	ttc_discord_add_modal_listener(discord, "embed_modal", ttc_embed_modal_submit);
+	ttc_discord_add_component_listener(discord, "role_select", ttc_self_roles_picked);
 
 	ttc_discord_run(discord);
+
 
 	ttc_discord_ctx_destroy(discord);
 	ttc_log_deinit_file();
