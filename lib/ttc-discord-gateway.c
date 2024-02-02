@@ -97,7 +97,9 @@ static void *discord_heart(void *vargp) {
 	tmspec.tv_nsec = (ctx->heart_interval - tmspec.tv_sec * 1000) * 1000000;
 
 	while(1) {
+		// clang-format off
 		while(nanosleep(&tmspec, &tmspec));	
+		// clang-format on
 		discord_heartbeat(ctx);
 	}
 }
