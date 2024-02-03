@@ -119,12 +119,9 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 
 	ttc_https_request_send(request, ctx->api);
 
-	printf("%s\n", ttc_http_request_get_str(request));
-
 	response = ttc_https_get_response(ctx->api);
 
 	result = response->status;
-	printf("%d\n%s\n", response->status, response->data);
 
 	discord_app_register_command_listener(ctx, command->name, callback);
 
