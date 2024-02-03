@@ -1,10 +1,11 @@
+#include <ttc-discord/api.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
 #include <ttc-discord/messages.h>
-#include <ttc-discord/api.h>
 #include <ttc-http.h>
 
-void ttc_embed_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
+void ttc_embed_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+														const char *url) {
 	json_object *type, *content, *flags, *response, *data;
 	char *length_str;
 	ttc_discord_embed_t embed = {0};
@@ -14,30 +15,30 @@ void ttc_embed_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_
 
 	response = json_object_new_object();
 	data = json_object_new_object();
-	flags = json_object_new_int(1<<6); /*EPHMERAL*/
+	flags = json_object_new_int(1 << 6); /*EPHMERAL*/
 	type = json_object_new_int(DiscordInteractionCallbackMessage);
 
-	for(uint32_t i = 0; i < interaction->data.modal->field_count; i++) {
-		if(strcmp(interaction->data.modal->fields[i].id, "embed_title") == 0) {
+	for (uint32_t i = 0; i < interaction->data.modal->field_count; i++) {
+		if (strcmp(interaction->data.modal->fields[i].id, "embed_title") == 0) {
 			embed.title = interaction->data.modal->fields[i].value;
-		} else if(strcmp(interaction->data.modal->fields[i].id, "embed_desc") == 0) {
+		} else if (strcmp(interaction->data.modal->fields[i].id, "embed_desc") == 0) {
 			embed.description = interaction->data.modal->fields[i].value;
-		} else if(strcmp(interaction->data.modal->fields[i].id, "embed_channel") == 0) {
+		} else if (strcmp(interaction->data.modal->fields[i].id, "embed_channel") == 0) {
 			channel_id = strtoull(interaction->data.modal->fields[i].value, NULL, 10);
-		} else if(strcmp(interaction->data.modal->fields[i].id, "embed_color") == 0) {
+		} else if (strcmp(interaction->data.modal->fields[i].id, "embed_color") == 0) {
 			embed.color = strtoull(interaction->data.modal->fields[i].value, NULL, 16);
-		} else if(strcmp(interaction->data.modal->fields[i].id, "old_message") == 0) {
+		} else if (strcmp(interaction->data.modal->fields[i].id, "old_message") == 0) {
 			printf("Message id: %s\n", interaction->data.modal->fields[i].value);
 			message_id = strtoull(interaction->data.modal->fields[i].value, NULL, 10);
 		}
 	}
-	
+
 	json_object_object_add(response, "type", type);
 	json_object_object_add(response, "data", data);
 
 	json_object_object_add(data, "flags", flags);
 
-	if(channel_id == 0) {
+	if (channel_id == 0) {
 		content = json_object_new_string("Channel ID has to be number!");
 
 	} else if (message_id) {
@@ -55,9 +56,8 @@ void ttc_embed_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
 
 	http_response = ttc_discord_api_send_json(ctx, request, response);
-	
+
 	ttc_http_request_free(request);
 	ttc_http_response_free(http_response);
 	json_object_put(response);
 }
-

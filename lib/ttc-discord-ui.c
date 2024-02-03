@@ -1,14 +1,15 @@
 #include <discord.h>
 #include <json-c/json_object.h>
 #include <stdint.h>
-#include <ttc-discord/discord.h>
 #include <ttc-discord/api.h>
+#include <ttc-discord/discord.h>
 
-#include <ttc-log.h>
 #include <ttc-http.h>
+#include <ttc-log.h>
 
-
-int ttc_discord_add_component_listener(ttc_discord_ctx_t *ctx, const char *modal_id, void (*callback)(ttc_discord_interaction_t *, ttc_discord_ctx_t *, const char *)) {
+int ttc_discord_add_component_listener(ttc_discord_ctx_t *ctx, const char *modal_id,
+																			 void (*callback)(ttc_discord_interaction_t *,
+																												ttc_discord_ctx_t *, const char *)) {
 	cmd_listeners_t listener, *tmp;
 	tmp = realloc(ctx->components_callbacks, (ctx->components + 1) * sizeof(cmd_listeners_t));
 
@@ -17,22 +18,21 @@ int ttc_discord_add_component_listener(ttc_discord_ctx_t *ctx, const char *modal
 
 	tmp[ctx->components] = listener;
 
-	ctx->components_callbacks= tmp;
+	ctx->components_callbacks = tmp;
 	ctx->components++;
 
 	return 0;
-	
 }
 
-int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id,
-		int btn_style, const char *text, uint64_t channel) {
+int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id, int btn_style,
+															const char *text, uint64_t channel) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *length_str, *url;
 	int length, result;
-	json_object *message, *components, *button, *type,
-				*label, *style, *id, *row, *artype, *arcomponents;
-	
+	json_object *message, *components, *button, *type, *label, *style, *id, *row, *artype,
+			*arcomponents;
+
 	/*Create an action row for the button*/
 	artype = json_object_new_int(DiscordComponentActionRow);
 	row = json_object_new_object();
@@ -58,21 +58,19 @@ int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id,
 	json_object_array_add(arcomponents, button);
 	json_object_object_add(message, "components", components);
 
-
 	length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(message)));
 	length_str = calloc(1, length + 1);
 	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(message)));
 
 	length = snprintf(NULL, 0, "/api/v10/channels/%lu/messages", channel);
 	url = calloc(1, length + 1);
-	length = snprintf(url, length+1, "/api/v10/channels/%lu/messages", channel);
-	
+	length = snprintf(url, length + 1, "/api/v10/channels/%lu/messages", channel);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
-	
+
 	response = ttc_discord_api_send_json(ctx, request, message);
 	result = response->status;
 
@@ -84,15 +82,14 @@ int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id,
 	return result;
 }
 
-int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type,
-		const char *menu_id, uint64_t channel, uint32_t max) {
+int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type, const char *menu_id,
+																	 uint64_t channel, uint32_t max) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *length_str, *url;
 	int length, result;
-	json_object *message, *components, *menu, *menu_type,
-				*label, *style, *id, *row, *artype, *arcomponents,
-				*max_val;	
+	json_object *message, *components, *menu, *menu_type, *label, *style, *id, *row, *artype,
+			*arcomponents, *max_val;
 	/*Create an action row for the button*/
 	artype = json_object_new_int(DiscordComponentActionRow);
 	row = json_object_new_object();
@@ -122,15 +119,13 @@ int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type,
 
 	length = snprintf(NULL, 0, "/api/v10/channels/%lu/messages", channel);
 	url = calloc(1, length + 1);
-	length = snprintf(url, length+1, "/api/v10/channels/%lu/messages", channel);
-	
-
+	length = snprintf(url, length + 1, "/api/v10/channels/%lu/messages", channel);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
-	
+
 	response = ttc_discord_api_send_json(ctx, request, message);
 	result = response->status;
 
@@ -140,6 +135,4 @@ int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type,
 	ttc_http_request_free(request);
 	json_object_put(message);
 	return result;
-
 }
-

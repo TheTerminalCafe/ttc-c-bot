@@ -7,11 +7,10 @@ bool ttc_discord_command_in_guild(uint64_t gid) {
 	return gid != 0;
 }
 
-
-void ttc_discord_interaction_respond_embed(ttc_discord_ctx_t *ctx, char *title, char *description, uint32_t color, const char *url) {
+void ttc_discord_interaction_respond_embed(ttc_discord_ctx_t *ctx, char *title, char *description,
+																					 uint32_t color, const char *url) {
 	ttc_discord_embed_t embed = {0};
-	json_object *embed_object, *type, *interaction, 
-				*data, *em_array;
+	json_object *embed_object, *type, *interaction, *data, *em_array;
 	embed.title = title;
 	embed.description = description;
 	embed.color = color;
@@ -27,16 +26,15 @@ void ttc_discord_interaction_respond_embed(ttc_discord_ctx_t *ctx, char *title, 
 	json_object_object_add(data, "embeds", em_array);
 	json_object_object_add(interaction, "data", data);
 
-
 	ttc_http_request_t *request = ttc_http_new_request();
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_path(request, url);
-	
+
 	ttc_http_response_t *response = ttc_discord_api_send_json(ctx, request, interaction);
-	
+
 	TTC_LOG_DEBUG("Response Embed returned: %d\n%s\n", response->status, response->headers);
-	
+
 	json_object_put(interaction);
 	ttc_http_response_free(response);
 	ttc_http_request_free(request);
@@ -55,9 +53,9 @@ void ttc_discord_interaction_loading(ttc_discord_ctx_t *ctx, const char *url) {
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_path(request, url);
-	
+
 	ttc_http_response_t *response = ttc_discord_api_send_json(ctx, request, interaction);
-	
+
 	TTC_LOG_DEBUG("Response loading returned: %d\n%s\n", response->status, response->headers);
 
 	json_object_put(interaction);
@@ -65,13 +63,14 @@ void ttc_discord_interaction_loading(ttc_discord_ctx_t *ctx, const char *url) {
 	ttc_http_request_free(request);
 }
 
-void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title,
-		char *description, uint32_t color, ttc_discord_interaction_t *interaction) {
+void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title, char *description,
+																						 uint32_t color,
+																						 ttc_discord_interaction_t *interaction) {
 	const char *fmt = "/api/v10/webhooks/%lu/%s/messages/@original";
 	char *url;
 	ttc_discord_embed_t embed = {0};
 	json_object *embed_object, *message, *em_array;
-	int length; 
+	int length;
 
 	length = snprintf(NULL, 0, fmt, interaction->app_id, interaction->token);
 	url = calloc(1, length + 1);
@@ -92,15 +91,13 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_PATCH);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_path(request, url);
-	
+
 	ttc_http_response_t *response = ttc_discord_api_send_json(ctx, request, message);
-	TTC_LOG_DEBUG("Response URL: %s\n", ttc_http_request_get_str(request));	
+	TTC_LOG_DEBUG("Response URL: %s\n", ttc_http_request_get_str(request));
 	TTC_LOG_DEBUG("Response update returned: %d\n%s\n", response->status, response->headers);
-		
+
 	free(url);
 	json_object_put(message);
 	ttc_http_response_free(response);
 	ttc_http_request_free(request);
 }
-
-

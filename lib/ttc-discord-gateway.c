@@ -6,24 +6,23 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <ttc-http.h>
 #include <ttc-log.h>
 #include <ttc-ws.h>
-#include <stdlib.h>
 #include <unistd.h>
 
-
 #include <discord.h>
-#include <ttc-discord/gateway.h>
-#include <ttc-discord/discord.h>
 #include <ttc-discord/api.h>
+#include <ttc-discord/discord.h>
+#include <ttc-discord/gateway.h>
 #include <ttc-discord/messages.h>
 
 void discord_identify(ttc_discord_ctx_t *ctx) {
-	json_object *login, *status, *properties, *os, *browser, *device, 
-				*intents, *opcode, *token, *data;
+	json_object *login, *status, *properties, *os, *browser, *device, *intents, *opcode, *token,
+			*data;
 	ttc_ws_wrreq_t login_request;
 
 	login = json_object_new_object();
@@ -37,17 +36,17 @@ void discord_identify(ttc_discord_ctx_t *ctx) {
 	device = json_object_new_string("ttc-cbot");
 	token = json_object_new_string(ctx->token);
 
-	intents = json_object_new_int((1<<9) | (1 << 4) | (1 << 10));
+	intents = json_object_new_int((1 << 9) | (1 << 4) | (1 << 10));
 
 	/*Fill Json Objects*/
 	json_object_object_add(properties, "os", os);
 	json_object_object_add(properties, "browser", browser);
 	json_object_object_add(properties, "device", device);
-	
+
 	json_object_object_add(data, "token", token);
 	json_object_object_add(data, "properties", properties);
 	json_object_object_add(data, "intents", intents);
-	
+
 	json_object_object_add(login, "op", opcode);
 	json_object_object_add(login, "d", data);
 
@@ -57,7 +56,6 @@ void discord_identify(ttc_discord_ctx_t *ctx) {
 	login_request.mask = 1;
 	login_request.data = strdup(json_object_to_json_string(login));
 	login_request.len = strlen(json_object_to_json_string(login));
-		
 
 	ttc_wss_write(ctx->gateway, login_request);
 
@@ -82,7 +80,6 @@ void discord_heartbeat(ttc_discord_ctx_t *ctx) {
 	heartreq.data = strdup(json_object_get_string(heartbeat));
 	heartreq.len = strlen(heartreq.data);
 
-
 	ttc_wss_write(ctx->gateway, heartreq);
 	free(heartreq.data);
 	json_object_put(heartbeat);
@@ -96,8 +93,10 @@ static void *discord_heart(void *vargp) {
 	tmspec.tv_sec -= 3;
 	tmspec.tv_nsec = (ctx->heart_interval - tmspec.tv_sec * 1000) * 1000000;
 
-	while(1) {
-		while(nanosleep(&tmspec, &tmspec));	
+	while (1) {
+		// clang-format off
+		while(nanosleep(&tmspec, &tmspec));
+		// clang-format on
 		discord_heartbeat(ctx);
 	}
 }
@@ -120,18 +119,18 @@ void discord_reconnect(ttc_discord_ctx_t *ctx) {
 	json_object_object_add(d, "seq", seq);
 	json_object_object_add(resume, "op", op);
 	json_object_object_add(resume, "d", d);
-	
+
 	ttc_wss_free(ctx->gateway);
 
 	ttc_wss_t *wss = ttc_wss_create_from_host(ctx->resume_url, "443", ctx->ssl_ctx);
-	
+
 	wreq.data = strdup(json_object_to_json_string(resume));
 	wreq.len = strlen(json_object_to_json_string(resume));
 	wreq.fin = 1;
 	wreq.mask = 1;
 	wreq.res = 0;
 	wreq.opcode = TTC_WS_TEXT_FRAME;
-	
+
 	TTC_LOG_DEBUG("Resuming: %s\n", wreq.data);
 
 	ttc_wss_write(wss, wreq);
@@ -141,46 +140,48 @@ void discord_reconnect(ttc_discord_ctx_t *ctx) {
 	ctx->gateway = wss;
 }
 
-void handle_interaction_app_command(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
+void handle_interaction_app_command(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+																		const char *url) {
 	uint64_t size;
 	TTC_LOG_DEBUG("App Command\n");
 
-	if(!ctx->command_callbacks) {
+	if (!ctx->command_callbacks) {
 		TTC_LOG_ERROR("There is no command listeners registered?\n"
-				"Did you manually make this command?\n");
+									"Did you manually make this command?\n");
 		return;
 	}
 
-	for(size = 0; size < ctx->callbacks; size++) {
+	for (size = 0; size < ctx->callbacks; size++) {
 		TTC_LOG_DEBUG("Command: %s\n", ctx->command_callbacks[size].name);
-		if(strcmp(ctx->command_callbacks[size].name, interaction->data.command->name) == 0) {
+		if (strcmp(ctx->command_callbacks[size].name, interaction->data.command->name) == 0) {
 			ctx->command_callbacks[size].cmd_callback(interaction, ctx, url);
 			return;
 		}
 	}
-
 }
 
-void handle_interaction_msg_component(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
+void handle_interaction_msg_component(ttc_discord_interaction_t *interaction,
+																			ttc_discord_ctx_t *ctx, const char *url) {
 	uint64_t size;
 	TTC_LOG_DEBUG("Component Submitted: %s\n", interaction->data.component->id);
-	
-	for(size = 0; size < ctx->components; size++) {
+
+	for (size = 0; size < ctx->components; size++) {
 		TTC_LOG_DEBUG("Component: %s\n", ctx->components_callbacks[size].name);
-		if(strcmp(ctx->components_callbacks[size].name, interaction->data.component->id) == 0) {
+		if (strcmp(ctx->components_callbacks[size].name, interaction->data.component->id) == 0) {
 			ctx->components_callbacks[size].cmd_callback(interaction, ctx, url);
 			return;
 		}
 	}
 }
 
-void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url) {
+void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+																		 const char *url) {
 	uint64_t size;
 	TTC_LOG_DEBUG("Modal Submitted: %s\n", interaction->data.modal->id);
 
-	for(size = 0; size < ctx->modals; size++) {
+	for (size = 0; size < ctx->modals; size++) {
 		TTC_LOG_DEBUG("Modal: %s\n", ctx->modal_callbacks[size].name);
-		if(strcmp(ctx->modal_callbacks[size].name, interaction->data.modal->id) == 0) {
+		if (strcmp(ctx->modal_callbacks[size].name, interaction->data.modal->id) == 0) {
 			ctx->modal_callbacks[size].cmd_callback(interaction, ctx, url);
 			return;
 		}
@@ -188,7 +189,7 @@ void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc
 }
 
 static ttc_discord_app_cmd_opt_t ttc_dc_command_resolve_option(json_object *data) {
-	ttc_discord_app_cmd_opt_t option = { 0 };
+	ttc_discord_app_cmd_opt_t option = {0};
 	json_object *object;
 	json_bool found;
 
@@ -198,7 +199,7 @@ static ttc_discord_app_cmd_opt_t ttc_dc_command_resolve_option(json_object *data
 
 	json_object_object_get_ex(data, "name", &object);
 
-	/*Only copy upto DISCORD_OPTION_NAME_LENGTH to buffer 
+	/*Only copy upto DISCORD_OPTION_NAME_LENGTH to buffer
 	 * STRNCPY shouldn't strictly be needed as discord says its
 	 * Less than or equal to that size but we just choose to be extra
 	 * safe in case their is ever some mistake on their end
@@ -206,9 +207,8 @@ static ttc_discord_app_cmd_opt_t ttc_dc_command_resolve_option(json_object *data
 	strncpy(option.name, json_object_get_string(object), DISCORD_OPTION_NAME_LENGTH);
 	TTC_LOG_DEBUG("Name: %s\n", option.name);
 
-
 	json_object_object_get_ex(data, "value", &object);
-	switch(option.type) {
+	switch (option.type) {
 		case DiscordOptionRole:
 		case DiscordOptionUser:
 		case DiscordOptionChannel:
@@ -228,11 +228,12 @@ static ttc_discord_app_cmd_opt_t ttc_dc_command_resolve_option(json_object *data
 		case DiscordOptionDouble:
 			option.value.floating = json_object_get_double(object);
 			break;
-		case DiscordOptionBool: 
+		case DiscordOptionBool:
 			option.value.floating = json_object_get_boolean(object);
 			break;
 		/*TODO: Mentionable and attachments*/
-		default: TTC_LOG_WARN("Unknown Option type of %d\n", option.type);
+		default:
+			TTC_LOG_WARN("Unknown Option type of %d\n", option.type);
 	}
 
 	/**TODO:*/
@@ -248,35 +249,35 @@ static ttc_discord_app_cmd_data_t *ttc_discord_interaction_resolve_app_cmd_data(
 	size_t size, ind;
 	json_bool found;
 	ttc_discord_app_cmd_data_t *output;
-	
+
 	output = calloc(1, sizeof(ttc_discord_app_cmd_data_t));
 
 	json_object_object_get_ex(data, "type", &object);
 
 	output->type = json_object_get_int64(object);
-	
+
 	json_object_object_get_ex(data, "name", &object);
 	strncpy(output->name, json_object_get_string(object), DISCORD_COMMAND_NAME_LENGTH);
 
 	json_object_object_get_ex(data, "id", &object);
-	output->id = strtoull(json_object_get_string(object), NULL, 10);	
+	output->id = strtoull(json_object_get_string(object), NULL, 10);
 
 	found = json_object_object_get_ex(data, "guild_id", &object);
 	output->guildid = found ? strtoull(json_object_get_string(object), NULL, 10) : 0;
 
 	found = json_object_object_get_ex(data, "target_id", &object);
-	output->targetid =  found ? strtoull(json_object_get_string(object), NULL, 10) : 0;
-	
+	output->targetid = found ? strtoull(json_object_get_string(object), NULL, 10) : 0;
+
 	found = json_object_object_get_ex(data, "options", &object);
-	if(found) {
+	if (found) {
 		size = json_object_array_length(object);
 		output->options = calloc(size, sizeof(ttc_discord_app_cmd_opt_t));
 		output->opt_count = size;
-		for(ind = 0; ind < size; ++ind) {
+		for (ind = 0; ind < size; ++ind) {
 			output->options[ind] = ttc_dc_command_resolve_option(json_object_array_get_idx(object, ind));
 		}
 	}
-	
+
 	/* TODO: Resolved Data */
 	return output;
 }
@@ -287,70 +288,66 @@ ttc_discord_component_data_t *ttc_discord_interaction_resolve_component(json_obj
 	size_t index = 0;
 
 	component = calloc(1, sizeof(ttc_discord_component_data_t));
-	
-	json_object_object_get_ex(data, "custom_id", &object);	
+
+	json_object_object_get_ex(data, "custom_id", &object);
 	component->id = strdup(json_object_get_string(object));
 
 	json_object_object_get_ex(data, "component_type", &object);
 	component->type = json_object_get_uint64(object);
-	
-	/*It doesn't seem to be possible for ActionRow or TextInput to 
+
+	/*It doesn't seem to be possible for ActionRow or TextInput to
 	 * actually happen but I just have them here as a "better safe than sorry"
 	 * mentalitty
 	 */
-	if(component->type != DiscordComponentButton ||
-	   component->type != DiscordComponentTextInput || 
-	   component->type != DiscordComponentActionRow) {
+	if (component->type != DiscordComponentButton || component->type != DiscordComponentTextInput ||
+			component->type != DiscordComponentActionRow) {
 
 		json_object_object_get_ex(data, "values", &array);
 		component->count = json_object_array_length(array);
-		
+
 		/*allocate pointers for all the string dups*/
 		component->values = calloc(component->count, sizeof(char *));
 
-		for(index = 0; index < component->count; index++) {
+		for (index = 0; index < component->count; index++) {
 			object = json_object_array_get_idx(array, index);
 			component->values[index] = strdup(json_object_get_string(object));
 		}
-
 	}
 
 	return component;
 }
 
 ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
-	json_object *id, *components, *row_components, 
-				*component, *rows, *obj;
+	json_object *id, *components, *row_components, *component, *rows, *obj;
 	ttc_discord_modal_t *modal = calloc(1, sizeof(ttc_discord_modal_t));
-	
+
 	json_object_object_get_ex(data, "custom_id", &id);
 	json_object_object_get_ex(data, "components", &components);
 
 	modal->id = strdup(json_object_get_string(id));
 
-	for(size_t ind = 0; ind < json_object_array_length(components); ind++) {
+	for (size_t ind = 0; ind < json_object_array_length(components); ind++) {
 		rows = json_object_array_get_idx(components, ind);
 		json_object_object_get_ex(rows, "components", &row_components);
 		component = json_object_array_get_idx(row_components, 0);
 		/*TODO: Error checking allocations*/
 		/*we kinda just assume they are all text fields which is by no means a gurantee*/
-		modal->fields[ind].id = strdup(json_object_get_string(json_object_object_get(component, "custom_id")));
-		modal->fields[ind].value = strdup(json_object_get_string(json_object_object_get(component, "value")));
+		modal->fields[ind].id =
+				strdup(json_object_get_string(json_object_object_get(component, "custom_id")));
+		modal->fields[ind].value =
+				strdup(json_object_get_string(json_object_object_get(component, "value")));
 	}
 
-	
 	modal->field_count = json_object_array_length(components);
 
 	return modal;
 }
 
-
 void ttc_discord_member_free(ttc_discord_member_t *member) {
-	if(member->role_count) {
+	if (member->role_count) {
 		member->roles = calloc(member->role_count, sizeof(char *));
-	
 
-		for(size_t index = 0; index < member->role_count; index++) {
+		for (size_t index = 0; index < member->role_count; index++) {
 			free(member->roles[index]);
 		}
 		free(member->roles);
@@ -362,10 +359,10 @@ void ttc_discord_member_free(ttc_discord_member_t *member) {
 void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 	switch (interaction->type) {
 		case DiscordInteractionAppCmd:
-			for(size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
+			for (size_t ind = 0; ind < interaction->data.command->opt_count; ind++) {
 				uint32_t type = interaction->data.command->options[ind].type;
-				if(type == DiscordOptionString || type == DiscordOptionChannel || type == DiscordOptionUser
-						|| type == DiscordOptionRole) {
+				if (type == DiscordOptionString || type == DiscordOptionChannel ||
+						type == DiscordOptionUser || type == DiscordOptionRole) {
 					free(interaction->data.command->options[ind].value.string);
 				}
 			}
@@ -373,7 +370,7 @@ void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 			free(interaction->data.command);
 			break;
 		case DiscordInteractionModalSubmit:
-			for(size_t ind = 0; ind < interaction->data.modal->field_count; ind++) {
+			for (size_t ind = 0; ind < interaction->data.modal->field_count; ind++) {
 				free(interaction->data.modal->fields[ind].value);
 				free(interaction->data.modal->fields[ind].id);
 			}
@@ -381,15 +378,15 @@ void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 			break;
 		case DiscordInteractionMsgComponent: {
 			ttc_discord_component_data_t *component = interaction->data.component;
-			if(component->type != DiscordComponentButton ||
-				component->type != DiscordComponentTextInput || 
-				component->type != DiscordComponentActionRow) {
-				for(size_t index = 0; index < component->count; index++) {
+			if (component->type != DiscordComponentButton ||
+					component->type != DiscordComponentTextInput ||
+					component->type != DiscordComponentActionRow) {
+				for (size_t index = 0; index < component->count; index++) {
 					free(component->values[index]); /*Free each string*/
 				}
 				free(component->values); /*free the pointers*/
 			}
-			
+
 			free(component->id);
 			free(component);
 		}
@@ -412,22 +409,22 @@ ttc_discord_member_t *ttc_discord_member_json_to_struct(json_object *member) {
 
 	found = json_object_object_get_ex(member, "user", &user);
 	output->user.id = strtoull(json_object_get_string(json_object_object_get(user, "id")), NULL, 10);
-	output->permission = strtoull(json_object_get_string(json_object_object_get(member, "permissions")), NULL, 10);
-	
-	/*we are storing the roles as strings as we would then need 
+	output->permission =
+			strtoull(json_object_get_string(json_object_object_get(member, "permissions")), NULL, 10);
+
+	/*we are storing the roles as strings as we would then need
 	 * reparse them into strings when working with them.
-	 * and would need to parse the roles a user selects 
+	 * and would need to parse the roles a user selects
 	 * and it just gets to be a lot of parsing
 	 */
 	json_object_object_get_ex(member, "roles", &array);
 	output->role_count = json_object_array_length(array);
-	
-	/*allocate pointers for all the string dups*/
-	if(output->role_count) {
-		output->roles = calloc(output->role_count, sizeof(char *));
-	
 
-		for(size_t index = 0; index < output->role_count; index++) {
+	/*allocate pointers for all the string dups*/
+	if (output->role_count) {
+		output->roles = calloc(output->role_count, sizeof(char *));
+
+		for (size_t index = 0; index < output->role_count; index++) {
 			object = json_object_array_get_idx(array, index);
 			output->roles[index] = strdup(json_object_get_string(object));
 		}
@@ -445,7 +442,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 	output = calloc(1, sizeof(ttc_discord_interaction_t));
 
 	found = json_object_object_get_ex(interaction, "id", &object);
-	if(found == false) {
+	if (found == false) {
 		/* ID is required so this seems like this isnt a real
 		 * interaction but some other json object given by mistake
 		 */
@@ -456,18 +453,17 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 
 	found = json_object_object_get_ex(interaction, "application_id", &object);
 	output->app_id = strtoull(json_object_get_string(object), NULL, 10);
-	
+
 	found = json_object_object_get_ex(interaction, "app_permissions", &object);
-	if(found) {
+	if (found) {
 		output->app_permission = strtoull(json_object_get_string(object), NULL, 10);
 	}
 
 	json_object_object_get_ex(interaction, "type", &object);
 	output->type = json_object_get_int64(object);
 
-
 	json_object_object_get_ex(interaction, "data", &object);
-	switch(output->type) {
+	switch (output->type) {
 		case DiscordInteractionPing:
 			break;
 		case DiscordInteractionAppCmd:
@@ -483,7 +479,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 
 	found = json_object_object_get_ex(interaction, "guild_id", &object);
 	output->guild_id = found ? strtoull(json_object_get_string(object), NULL, 10) : 0;
-	if(output->guild_id) {
+	if (output->guild_id) {
 		found = json_object_object_get_ex(interaction, "member", &member);
 		output->member = ttc_discord_member_json_to_struct(member);
 	}
@@ -511,7 +507,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 	 */
 
 	/*TODO entitlements but i don't want to
-	 * I'd rather make an OF than get payed by 
+	 * I'd rather make an OF than get payed by
 	 * Discord apps :P
 	 */
 
@@ -522,8 +518,7 @@ void handle_interaction(json_object *object, ttc_discord_ctx_t *ctx) {
 	ttc_discord_interaction_t *interaction;
 	const char *fmt = "/api/v10/interactions/%lu/%s/callback";
 	int length;
-	char *url = NULL; 
-
+	char *url = NULL;
 
 	TTC_LOG_DEBUG("%s\n", json_object_to_json_string(object));
 	interaction = ttc_discord_interaction_to_struct(object);
@@ -532,20 +527,20 @@ void handle_interaction(json_object *object, ttc_discord_ctx_t *ctx) {
 	url = calloc(1, length + 1);
 	length = snprintf(url, length + 1, fmt, interaction->id, interaction->token);
 
-	switch(interaction->type) {
+	switch (interaction->type) {
 		case DiscordInteractionAppCmd:
 			handle_interaction_app_command(interaction, ctx, url);
 			break;
 		case DiscordInteractionMsgComponent:
 			handle_interaction_msg_component(interaction, ctx, url);
 			break;
-		case DiscordInteractionModalSubmit: 
+		case DiscordInteractionModalSubmit:
 			handle_interaction_modal_submit(interaction, ctx, url);
 			break;
 		default:
 			TTC_LOG_WARN("Unknown interaction type: %d\n", interaction->type);
 	}
-	
+
 	ttc_discord_interaction_free(interaction);
 	free(url);
 }
@@ -559,8 +554,8 @@ void handle_dispatch(json_object *json_response, ttc_discord_ctx_t *ctx) {
 
 	type = json_object_object_get(json_response, "t");
 	type_str = json_object_get_string(type);
-	
-	if(strcmp("READY", type_str) == 0) {
+
+	if (strcmp("READY", type_str) == 0) {
 		d = json_object_object_get(json_response, "d");
 		resumeurl = json_object_object_get(d, "resume_gateway_url");
 		sessionid = json_object_object_get(d, "session_id");
@@ -570,9 +565,9 @@ void handle_dispatch(json_object *json_response, ttc_discord_ctx_t *ctx) {
 
 		TTC_LOG_DEBUG("Resume URL: %s\n", ctx->resume_url);
 		TTC_LOG_DEBUG("Session ID: %s\n", ctx->session_id);
-	} else if(strcmp("INTERACTION_CREATE", type_str) == 0) {
+	} else if (strcmp("INTERACTION_CREATE", type_str) == 0) {
 		d = json_object_object_get(json_response, "d");
-		handle_interaction(d, ctx);	
+		handle_interaction(d, ctx);
 	} else {
 		TTC_LOG_WARN("Unknown dispatch event: %s\n", type_str);
 	}
@@ -590,11 +585,10 @@ void discord_handle_hello(json_object *response, ttc_discord_ctx_t *ctx) {
 }
 
 void discord_polite_exit() {
-	
 }
 
 void discord_ws_closed(uint16_t close_code, ttc_discord_ctx_t *ctx) {
-	switch(close_code) {
+	switch (close_code) {
 		case TtcWsCloseNormal:
 		case TtcWsGoingAway:
 			discord_reconnect(ctx);
@@ -611,7 +605,7 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 	json_object *op = json_object_object_get(response, "op");
 	int opint = json_object_get_int(op);
 
-	switch(opint) {
+	switch (opint) {
 		case DiscordDispatch: {
 			handle_dispatch(response, ctx);
 			break;
@@ -624,7 +618,7 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 			TTC_LOG_DEBUG("Discord session invalidated creating new session\n%s\n", buffer->data);
 			ttc_wss_free(ctx->gateway);
 			ctx->gateway = ttc_wss_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
-			if(!ctx->gateway) {
+			if (!ctx->gateway) {
 				pthread_cancel(ctx->heart_thread);
 				pthread_exit(exit);
 			}
@@ -646,18 +640,16 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 	json_object_put(response);
 }
 
- 
-
 void *discord_gateway_read(void *vargp) {
 	ttc_discord_ctx_t *ctx = vargp;
 	ttc_ws_buffer_t *buffer;
 
-	while(1) {
-		
+	while (1) {
+
 		buffer = ttc_wss_read(ctx->gateway);
-		
-		switch(buffer->opcode) {
-			case 0: { /*the websocket closed without telling us*/
+
+		switch (buffer->opcode) {
+			case 0: {                 /*the websocket closed without telling us*/
 				discord_reconnect(ctx); /*To reconnect*/
 				break;
 			}
@@ -681,5 +673,3 @@ void *discord_gateway_read(void *vargp) {
 	}
 	pthread_exit(NULL);
 }
-
-
