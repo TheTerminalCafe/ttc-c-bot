@@ -345,8 +345,6 @@ ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
 
 void ttc_discord_member_free(ttc_discord_member_t *member) {
 	if (member->role_count) {
-		member->roles = calloc(member->role_count, sizeof(char *));
-
 		for (size_t index = 0; index < member->role_count; index++) {
 			free(member->roles[index]);
 		}
