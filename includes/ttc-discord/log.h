@@ -11,10 +11,9 @@ typedef enum ttc_log_levels {
 	TTC_LOG_MAX,
 } ttc_log_levels_t;
 
-int ttc_log(ttc_log_levels_t level, uint64_t line, const char *file,
-		const char *fmt, ...);
+int ttc_log(ttc_log_levels_t level, uint64_t line, const char *file, const char *fmt, ...);
 void ttc_log_set_level(ttc_log_levels_t level);
-int ttc_log_printf(ttc_log_levels_t level, const char *fmt, ...);	
+int ttc_log_printf(ttc_log_levels_t level, const char *fmt, ...);
 
 #define ttc_info(...) ttc_log(TTC_LOG_INFO, __LINE__, __FILE__, __VA_ARGS__)
 #define ttc_debug(...) ttc_log(TTC_LOG_DEBUG, __LINE__, __FILE__, __VA_ARGS__)

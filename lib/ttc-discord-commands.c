@@ -9,7 +9,9 @@
 #include <ttc-log.h>
 
 int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *title,
-			void (*callback)(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url)) {
+																					void (*callback)(ttc_discord_interaction_t *interaction,
+																													 ttc_discord_ctx_t *ctx,
+																													 const char *url)) {
 	cmd_listeners_t listener, *tmp;
 
 	tmp = realloc(ctx->command_callbacks, (ctx->callbacks + 1) * sizeof(cmd_listeners_t));
@@ -25,28 +27,27 @@ int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *ti
 	return 0;
 }
 
-int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ctx, 
-		void (*callback)(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx, const char *url)) {
+int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ctx,
+																			 void (*callback)(ttc_discord_interaction_t *interaction,
+																												ttc_discord_ctx_t *ctx, const char *url)) {
 	json_object *command_json, *name, *type, *description, *options, *allow_in_dms,
-				*default_permissions;
+			*default_permissions;
 	json_object *option_names[25], *option_desc[25], *option_type[25], *required[25],
-				*option_objs[25];
+			*option_objs[25];
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	char *length_str, *url, *permissions; 
+	char *length_str, *url, *permissions;
 	int result, length;
 
 	length = snprintf(NULL, 0, "%lu", command->default_permissions);
 
 	permissions = calloc(1, length + 1);
-	if(!permissions) {
+	if (!permissions) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		return -1;
 	}
 
 	snprintf(permissions, length + 1, "%lu", command->default_permissions);
-
-
 
 	command_json = json_object_new_object();
 	name = json_object_new_string(command->name);
@@ -55,12 +56,12 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	allow_in_dms = json_object_new_boolean(command->allow_in_dms);
 	default_permissions = json_object_new_string(permissions);
 	options = json_object_new_array();
-	
 
 	/*construct the options from the struct*/
-	for(int i = 0; i < command->option_count; i++) {
-		if(i >= 25) {
-			TTC_LOG_WARN("Too many options passed with command %s. 25 is the maximum number of options\n", command->name);
+	for (int i = 0; i < command->option_count; i++) {
+		if (i >= 25) {
+			TTC_LOG_WARN("Too many options passed with command %s. 25 is the maximum number of options\n",
+									 command->name);
 			return -1;
 		}
 		option_objs[i] = json_object_new_object();
@@ -85,7 +86,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(command_json)));
 
 	length_str = calloc(1, length + 1);
-	if(!length_str) {
+	if (!length_str) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		return -1;
 	}
@@ -95,14 +96,12 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	length = snprintf(NULL, 0, "/api/v10/applications/%s/commands", ctx->app_id);
 
 	url = calloc(1, length + 1);
-	if(!length_str) {
+	if (!length_str) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		return -1;
 	}
 
 	length = snprintf(url, length + 1, "/api/v10/applications/%s/commands", ctx->app_id);
-
-
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -113,14 +112,14 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	ttc_http_request_add_header(request, "Authorization", ctx->api_token);
 	ttc_http_request_add_header(request, "Content-Type", "application/json");
 	ttc_http_request_add_header(request, "Content-Length", length_str);
-	ttc_http_request_add_header(request, "User-Agent", "DiscordBot (https://github.com/CaitCatDev, 1)");
+	ttc_http_request_add_header(request, "User-Agent",
+															"DiscordBot (https://github.com/CaitCatDev, 1)");
 	ttc_http_request_add_data(request, json_object_to_json_string(command_json));
 	ttc_http_request_build(request);
 
 	ttc_https_request_send(request, ctx->api);
 
 	printf("%s\n", ttc_http_request_get_str(request));
-
 
 	response = ttc_https_get_response(ctx->api);
 

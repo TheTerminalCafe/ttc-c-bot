@@ -34,10 +34,9 @@ typedef struct {
 typedef struct {
 	char *name;
 	char *id;
-	ttc_modal_field_t fields[5]; /*TODO: Support for more complex modals*/ 
+	ttc_modal_field_t fields[5]; /*TODO: Support for more complex modals*/
 	uint32_t field_count;
 } ttc_discord_modal_t;
-
 
 typedef struct command_choices {
 	char *name;
@@ -48,7 +47,7 @@ typedef struct command_choices {
 		char *string;
 		int integer;
 		double floatint;
-	}value;
+	} value;
 } command_choices_t;
 
 typedef struct command_opt {
@@ -58,7 +57,6 @@ typedef struct command_opt {
 	command_choices_t *choices;
 	int type;
 } command_opt_t;
-
 
 typedef struct command {
 	char *name;
@@ -73,4 +71,3 @@ typedef struct command {
 int ttc_discord_run(ttc_discord_ctx_t *ctx);
 void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx);
 ttc_discord_ctx_t *ttc_discord_ctx_create(char *token);
-	

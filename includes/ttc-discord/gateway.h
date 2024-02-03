@@ -1,9 +1,9 @@
 #pragma once
 
-#include <ttc-discord/gateway.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <ttc-discord/gateway.h>
 
 #include <json-c/json.h>
 
@@ -11,7 +11,6 @@
 
 #define DISCORD_COMMAND_NAME_LENGTH 32
 #define DISCORD_OPTION_NAME_LENGTH 32
-
 
 typedef enum {
 	DiscordInteractionPing = 1,
@@ -40,7 +39,7 @@ typedef enum {
 	 *
 	 * Seems tricky cause if it's something to do with
 	 * the bots setup we could just recconect. Get disconnected
-	 * for an invalid payload then be recconect and that 
+	 * for an invalid payload then be recconect and that
 	 * could eat a users 1000 daily connection limit.
 	 *
 	 * Maybe we implement a retry method so process goes like
@@ -108,7 +107,7 @@ typedef enum {
 #define DISCORD_PERMISSION_SEND_TTS 1 << 12
 #define DISCORD_PERMISSION_MANAGE_MESSAGE 1 << 13
 #define DISCORD_PERMISSION_EMBED_LINKS 1 << 14
-#define DISCORD_PERMISSION_ATTACH_FILES 1 << 15 
+#define DISCORD_PERMISSION_ATTACH_FILES 1 << 15
 #define DISCORD_PERMISSION_READ_HISTORY 1 << 16
 #define DISCORD_PERMISSION_AT_EVERYONE 1 << 17
 #define DISCORD_PERMISSION_EXTERNAL_EMOJIS 1 << 18
@@ -124,7 +123,7 @@ typedef enum {
 typedef struct ttc_discord_user_s {
 	snowflake_t id;
 	char username[33]; /*discord usernames can be 32 chars long*/
-	/*TODO: The rest of user*/
+										 /*TODO: The rest of user*/
 } ttc_discord_user_t;
 
 typedef struct ttc_discord_member_s {
@@ -162,45 +161,45 @@ typedef struct ttc_discord_component_data {
 	char *id;
 	size_t count;
 	char **values; /*Technically if these where roles,
-					*Channels or users ids we could store
-					*them as uint 64 but string is also possible
-					*/
+									*Channels or users ids we could store
+									*them as uint 64 but string is also possible
+									*/
 } ttc_discord_component_data_t;
 
 typedef struct ttc_discord_app_cmd_data {
-	 snowflake_t id; /**< Command id*/
-	 char name[DISCORD_COMMAND_NAME_LENGTH + 1]; /**Discord say 1-32 char length name so + 1 for NULL*/
-	 uint32_t type;
-	 void *resolved_data; /*TODO*/
-	 ttc_discord_app_cmd_opt_t *options; /*array of options*/
-	 size_t opt_count; /**How many options present*/
-	 snowflake_t guildid;
-	 snowflake_t targetid;
+	snowflake_t id;                             /**< Command id*/
+	char name[DISCORD_COMMAND_NAME_LENGTH + 1]; /**Discord say 1-32 char length name so + 1 for NULL*/
+	uint32_t type;
+	void *resolved_data;                /*TODO*/
+	ttc_discord_app_cmd_opt_t *options; /*array of options*/
+	size_t opt_count;                   /**How many options present*/
+	snowflake_t guildid;
+	snowflake_t targetid;
 } ttc_discord_app_cmd_data_t;
 
 typedef struct ttc_discord_interaction_s {
-	snowflake_t id; /**Interaction id*/
+	snowflake_t id;     /**Interaction id*/
 	snowflake_t app_id; /**Id of app interaction is for*/
 	DISCORD_INTERACTION_TYPE type;
 	union {
 		ttc_discord_component_data_t *component;
 		ttc_discord_modal_t *modal;
 		ttc_discord_app_cmd_data_t *command;
-	} data; /*TODO OPTIONAL or rather will be NULL for Ping events*/
-	snowflake_t guild_id; /*OPTIONAL*/
-	void *channel; /*TODO OPTIONAL*/
+	} data;                 /*TODO OPTIONAL or rather will be NULL for Ping events*/
+	snowflake_t guild_id;   /*OPTIONAL*/
+	void *channel;          /*TODO OPTIONAL*/
 	snowflake_t channel_id; /*OPTIONAL*/
 	ttc_discord_member_t *member;
 	ttc_discord_user_t user;
-	char *token; /**Interaction Token*/
-	uint32_t version; /**readonly discord says this is always 1*/
-	void *message; /**TODO: OPTIONAL for components message was attached to*/
+	char *token;             /**Interaction Token*/
+	uint32_t version;        /**readonly discord says this is always 1*/
+	void *message;           /**TODO: OPTIONAL for components message was attached to*/
 	uint64_t app_permission; /**Bitwise set of perms of bot in channel OPTIONAL*/
-	char *locale; /**Users local not present on PING interactions*/
-	char *guild_locale; /**Guild locale if command called in guild*/
-	void *entitlements; /**Yucky discord montesitation*/
+	char *locale;            /**Users local not present on PING interactions*/
+	char *guild_locale;      /**Guild locale if command called in guild*/
+	void *entitlements;      /**Yucky discord montesitation*/
 } ttc_discord_interaction_t;
 
 ttc_discord_interaction_t *ttcdc_interaction_to_struct(json_object *interaction);
 void discord_identify(ttc_discord_ctx_t *ctx);
-void *discord_gateway_read(void *vargp);	
+void *discord_gateway_read(void *vargp);
