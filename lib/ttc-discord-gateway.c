@@ -647,7 +647,6 @@ void *discord_gateway_read(void *vargp) {
 	ttc_ws_buffer_t *buffer;
 
 	while (1) {
-
 		buffer = ttc_wss_read(ctx->gateway);
 
 		switch (buffer->opcode) {
@@ -670,8 +669,7 @@ void *discord_gateway_read(void *vargp) {
 			}
 		}
 
-		free(buffer->data);
-		free(buffer);
+		ttc_ws_buffer_free(buffer);
 	}
 	pthread_exit(NULL);
 }
