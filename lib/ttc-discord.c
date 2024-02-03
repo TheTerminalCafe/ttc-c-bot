@@ -219,10 +219,18 @@ void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
 	cmd_listeners_t *tmp, *listener;
 
 	free(ctx->command_callbacks);
+	free(ctx->modal_callbacks);
+	free(ctx->components_callbacks);
 
 	ttc_wss_free(ctx->gateway);
 
 	free(ctx->api_token);
+
+	free(ctx->token);
+	free(ctx->app_id);
+
+	free(ctx->resume_url);
+	free(ctx->session_id);
 
 	SSL_shutdown(ctx->api);
 	SSL_free(ctx->api);

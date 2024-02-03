@@ -560,6 +560,8 @@ void handle_dispatch(json_object *json_response, ttc_discord_ctx_t *ctx) {
 		resumeurl = json_object_object_get(d, "resume_gateway_url");
 		sessionid = json_object_object_get(d, "session_id");
 
+		free(ctx->resume_url);
+		free(ctx->session_id);
 		ctx->resume_url = strdup(&json_object_get_string(resumeurl)[6]);
 		ctx->session_id = strdup(json_object_get_string(sessionid));
 
@@ -645,7 +647,6 @@ void *discord_gateway_read(void *vargp) {
 	ttc_ws_buffer_t *buffer;
 
 	while (1) {
-
 		buffer = ttc_wss_read(ctx->gateway);
 
 		switch (buffer->opcode) {
@@ -668,8 +669,7 @@ void *discord_gateway_read(void *vargp) {
 			}
 		}
 
-		free(buffer->data);
-		free(buffer);
+		ttc_ws_buffer_free(buffer);
 	}
 	pthread_exit(NULL);
 }
