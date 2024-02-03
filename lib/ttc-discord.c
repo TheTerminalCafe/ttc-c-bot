@@ -229,6 +229,9 @@ void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
 	free(ctx->token);
 	free(ctx->app_id);
 
+	free(ctx->resume_url);
+	free(ctx->session_id);
+
 	SSL_shutdown(ctx->api);
 	SSL_free(ctx->api);
 
