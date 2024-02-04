@@ -333,9 +333,18 @@ static void generate_iso8601_string(char *result, time_t time_unix) {
 					 time_tm.tm_mday, time_tm.tm_hour, time_tm.tm_min, time_tm.tm_sec);
 }
 
-static void add_time_to_unix_timestamp(time_t *time, int seconds, int minutes, int hours,
-																			 int days) {
-	*time += seconds + 60 * minutes + 3600 * hours + 86400 * days;
+static void generate_human_time(char *result, time_t time_unix) {
+	struct tm time_tm;
+	gmtime_r(&time_unix, &time_tm);
+	snprintf(result, 20, "%02d.%02d.%04d %02d:%02d:%02d", time_tm.tm_mday, time_tm.tm_mon + 1,
+					 time_tm.tm_year + 1900, time_tm.tm_hour, time_tm.tm_min, time_tm.tm_sec);
+}
+
+static time_t add_time_to_unix_timestamp(time_t *time, int seconds, int minutes, int hours,
+																				 int days) {
+	time_t added_amount = seconds + 60 * minutes + 3600 * hours + 86400 * days;
+	*time += added_amount;
+	return added_amount;
 }
 
 void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
@@ -344,30 +353,47 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 	ttc_discord_interaction_loading(ctx, url);
 
 	uint64_t target_user = 0;
-	uint8_t days;
-	int64_t days_raw;
+	int64_t days = 0;
+	int64_t hours = 0;
+	int64_t minutes = 0;
+	int64_t seconds = 0;
+
 	char *reason = NULL;
 
 	ttc_discord_app_cmd_data_t *command = interaction->data.command;
 	for (size_t i = 0; i < command->opt_count; ++i) {
 		ttc_discord_app_cmd_opt_t *option = &command->options[i];
 		GET_COMMAND_ARGUMENT_USER(option, "user", target_user);
-		GET_COMMAND_ARGUMENT_INT(option, "days_to_timeout", days_raw);
+		GET_COMMAND_ARGUMENT_INT(option, "days", days);
+		GET_COMMAND_ARGUMENT_INT(option, "hours", hours);
+		GET_COMMAND_ARGUMENT_INT(option, "minutes", minutes);
+		GET_COMMAND_ARGUMENT_INT(option, "seconds", seconds);
 		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
 	}
 
 	// TODO: Add permission checks!
 
-	if (days_raw > 28 || days_raw < 0) {
-		ttc_discord_interaction_loading_respond(
-				ctx, "Unable to timeout user!", "You provided either less than 0 days or more than 28 days",
-				0xff0000, interaction);
+	// all max values are equivalent to 28 days
+	ENSURE_INT_RANGE_LOADING(ctx, interaction, days, 0, 28)
+	ENSURE_INT_RANGE_LOADING(ctx, interaction, hours, 0, 672)
+	ENSURE_INT_RANGE_LOADING(ctx, interaction, minutes, 0, 40320)
+	ENSURE_INT_RANGE_LOADING(ctx, interaction, seconds, 0, 2419200)
+
+	if (days == 0 && hours == 0 && minutes == 0 && seconds == 0) {
+		ttc_discord_interaction_loading_respond(ctx, "Unable to timeout user!",
+																						"You provided no time or 0", 0xff0000, interaction);
 		return;
 	}
-	days = (uint8_t) days_raw;
 
 	time_t target_time = time(NULL);
-	add_time_to_unix_timestamp(&target_time, 0, 0, 0, days);
+	time_t selected_time = add_time_to_unix_timestamp(&target_time, seconds, minutes, hours, days);
+
+	// 28 days is the maximum amount to time out a user
+	if (selected_time >= 60 * 60 * 24 * 28) {
+		ttc_discord_interaction_loading_respond(
+				ctx, "Unable to timeout user!", "You provided a time over 28 days", 0xff0000, interaction);
+		return;
+	}
 
 	char time_str[21];
 	generate_iso8601_string(time_str, target_time);
@@ -375,9 +401,12 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 	int result =
 			ttc_discord_timeout_member(ctx, target_user, interaction->guild_id, time_str, reason);
 	if (result == 200) {
+		char time_human[21];
+		generate_human_time(time_human, target_time);
+
 		char buf[101];
-		snprintf(buf, 101, "The user <@%" PRIu64 "> is timeouted for %" PRIu8 " days", target_user,
-						 days);
+		snprintf(buf, 101, "The user <@%" PRIu64 "> is now timed out until %s", target_user,
+						 time_human);
 
 		ttc_discord_interaction_loading_respond(ctx, "User timed out!", buf, 0x00ff00, interaction);
 	} else {
