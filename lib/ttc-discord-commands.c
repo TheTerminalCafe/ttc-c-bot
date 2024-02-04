@@ -89,7 +89,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	length = snprintf(NULL, 0, "/api/v10/applications/%s/commands", ctx->app_id);
 
 	url = calloc(1, length + 1);
-	if (!length_str) {
+	if (!url) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		return -1;
 	}
