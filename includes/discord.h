@@ -7,8 +7,9 @@
 #include <time.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
-#include <ttc-http.h>
-#include <ttc-ws.h>
+
+#include <ttc-http/sockets.h>
+#include <ttc-http/websockets.h>
 
 typedef struct cmd_listeners cmd_listeners_t;
 
@@ -20,8 +21,8 @@ struct cmd_listeners {
 
 struct _ttc_discord_ctx_s {
 	SSL_CTX *ssl_ctx;
-	ttc_wss_t *gateway;
-	SSL *api;
+	ttc_ws_t *gateway;
+	ttc_http_socket_t *api;
 
 	char *token;
 	char *api_token;

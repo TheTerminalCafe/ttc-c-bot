@@ -1,3 +1,4 @@
+#include "ttc-discord/api.h"
 #include <json-c/json_object.h>
 #include <json-c/json_types.h>
 
@@ -5,8 +6,10 @@
 #include <stdlib.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
-#include <ttc-http.h>
 #include <ttc-log.h>
+
+#include <ttc-http/response.h>
+#include <ttc-http/request.h>
 
 int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *title,
 																					void (*callback)(ttc_discord_interaction_t *interaction,
@@ -83,16 +86,6 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	json_object_object_add(command_json, "dm_permission", allow_in_dms);
 	json_object_object_add(command_json, "default_member_permissions", default_permissions);
 
-	length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(command_json)));
-
-	length_str = calloc(1, length + 1);
-	if (!length_str) {
-		TTC_LOG_DEBUG("Allocating Length string failed\n");
-		return -1;
-	}
-
-	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(command_json)));
-
 	length = snprintf(NULL, 0, "/api/v10/applications/%s/commands", ctx->app_id);
 
 	url = calloc(1, length + 1);
@@ -108,18 +101,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
 
-	ttc_http_request_add_header(request, "Host", "discord.com");
-	ttc_http_request_add_header(request, "Authorization", ctx->api_token);
-	ttc_http_request_add_header(request, "Content-Type", "application/json");
-	ttc_http_request_add_header(request, "Content-Length", length_str);
-	ttc_http_request_add_header(request, "User-Agent",
-															"DiscordBot (https://github.com/CaitCatDev, 1)");
-	ttc_http_request_add_data(request, json_object_to_json_string(command_json));
-	ttc_http_request_build(request);
-
-	ttc_https_request_send(request, ctx->api);
-
-	response = ttc_https_get_response(ctx->api);
+	response = ttc_discord_api_send_json(ctx, request, command_json);
 
 	result = response->status;
 
@@ -129,7 +111,6 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	ttc_http_request_free(request);
 	free(permissions);
 	free(url);
-	free(length_str);
 	json_object_put(command_json);
 	return 0;
 }

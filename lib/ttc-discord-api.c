@@ -9,9 +9,12 @@
 #include <ttc-discord/api.h>
 
 #include <errno.h>
-#include <ttc-http.h>
+
 #include <ttc-log.h>
-#include <ttc-ws.h>
+
+#include <ttc-http/request.h>
+#include <ttc-http/sockets.h>
+#include <ttc-http/response.h>
 
 #include <json-c/json.h>
 
@@ -36,7 +39,6 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 
 	response = ttc_discord_api_send_request(ctx, request);
 	TTC_LOG_WARN("%s\n", response->data);
-	printf("%s\n", ttc_http_request_get_str(request));
 
 	length = response->status;
 	if (length == 200) {

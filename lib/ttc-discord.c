@@ -12,15 +12,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <ttc-http/sockets.h>
 #include <unistd.h>
 
 #include <discord.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
 #include <ttc-discord/messages.h>
-#include <ttc-http.h>
 #include <ttc-log.h>
-#include <ttc-ws.h>
+
+
 
 SSL_CTX *ssl_init() {
 	SSL_library_init();
@@ -29,46 +30,6 @@ SSL_CTX *ssl_init() {
 	SSL_load_error_strings();
 
 	return SSL_CTX_new(TLS_client_method());
-}
-
-SSL *ssl_socket_setup(SSL_CTX *ctx, int fd) {
-	SSL *ssl;
-
-	ssl = SSL_new(ctx);
-
-	SSL_set_fd(ssl, fd);
-
-	SSL_connect(ssl);
-
-	return ssl;
-}
-
-int socket_create_from_host(const char *host, const char *port) {
-	int sockfd, res;
-	struct addrinfo *info;
-
-	res = getaddrinfo(host, port, NULL, &info);
-	if (res != 0) {
-		TTC_LOG_WARN("getaddrinfo error %s\n", gai_strerror(res));
-		return -1;
-	}
-
-	sockfd = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
-	if (sockfd < 0) {
-		TTC_LOG_WARN("Socket error %s\n", strerror(errno));
-		freeaddrinfo(info);
-		return -1;
-	}
-
-	res = connect(sockfd, info->ai_addr, (int) info->ai_addrlen);
-	freeaddrinfo(info);
-	if (res != 0) {
-		TTC_LOG_WARN("Connect error %s", strerror(errno));
-		close(sockfd);
-		return -1;
-	}
-
-	return sockfd;
 }
 
 void ttc_cmd_quit(ttc_discord_ctx_t *ctx) {
@@ -174,18 +135,8 @@ int ttc_discord_run(ttc_discord_ctx_t *ctx) {
 	ttc_http_request_set_path(request, "/api/v10/gateway/bot");
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_GET);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
-	ttc_http_request_add_header(request, "Host", "discord.com");
-	ttc_http_request_add_header(request, "Authorization", ctx->api_token);
-	ttc_http_request_add_header(request, "User-Agent",
-															"DiscordBot (https://github.com/CaitCatDev, 1)");
-	ttc_http_request_build(request);
 
-	ttc_https_request_send(request, ctx->api);
-
-	response = ttc_https_get_response(ctx->api);
-	if (response->status != 200) {
-		return -1;
-	}
+	response = ttc_discord_api_send_request(ctx, request);
 
 	TTC_LOG_DEBUG(response->data);
 
@@ -195,7 +146,7 @@ int ttc_discord_run(ttc_discord_ctx_t *ctx) {
 
 	TTC_LOG_DEBUG("Gateway URL: %s\n", json_str);
 	ctx->gateway_url = &json_str[6];
-	ctx->gateway = ttc_wss_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
+	ctx->gateway = ttc_ws_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
 
 	ttc_http_request_free(request);
 	ttc_http_response_free(response);
@@ -222,7 +173,7 @@ void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
 	free(ctx->modal_callbacks);
 	free(ctx->components_callbacks);
 
-	ttc_wss_free(ctx->gateway);
+	ttc_ws_free(ctx->gateway);
 
 	free(ctx->api_token);
 
@@ -232,8 +183,7 @@ void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
 	free(ctx->resume_url);
 	free(ctx->session_id);
 
-	SSL_shutdown(ctx->api);
-	SSL_free(ctx->api);
+	ttc_http_socket_free(ctx->api);
 
 	SSL_CTX_free(ctx->ssl_ctx);
 
@@ -289,9 +239,6 @@ ttc_discord_ctx_t *ttc_discord_ctx_create(char *path) {
 
 	discord->ssl_ctx = ssl_init();
 
-	apisocket = socket_create_from_host("discord.com", "443");
-
-	discord->api = ssl_socket_setup(discord->ssl_ctx, apisocket);
-
+	discord->api = ttc_http_new_socket("discord.com", "443", discord->ssl_ctx);
 	return discord;
 }

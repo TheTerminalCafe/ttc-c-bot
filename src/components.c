@@ -8,7 +8,6 @@
 #include <ttc-discord/gateway.h>
 #include <ttc-discord/interaction.h>
 
-#include <ttc-http.h>
 #include <ttc-log.h>
 
 #include <json-c/json.h>
@@ -115,7 +114,6 @@ void ttc_ticket_modal_create(ttc_discord_interaction_t *interaction, ttc_discord
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_POST);
 
 	http_response = ttc_discord_api_send_json(ctx, request, response);
-	TTC_LOG_INFO("Sending: %s\n", ttc_http_request_get_str(request));
 
 	json_object_put(response);
 	ttc_http_response_free(http_response);

@@ -11,7 +11,7 @@ TARGET_STATIC=ttc-discord.a
 EXAMPLE=ttc-bot
 EXAMPLESRC=src/main.c src/command.c src/modals.c src/components.c
 INCLUDES=-I includes
-LIBS=-lttc-http -lttc-ws -lttc-log -lssl -lcrypto -ljson-c
+LIBS=-lttc-http -lttc-log -lssl -lcrypto -ljson-c
 
 all: $(TARGET) $(TARGET_STATIC) $(EXAMPLE)
 

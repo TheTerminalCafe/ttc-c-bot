@@ -4,7 +4,10 @@
 #include <stdint.h>
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
-#include <ttc-http.h>
+
+#include <ttc-http/response.h>
+#include <ttc-http/request.h>
+
 
 /* all API Calls here return one of two types of codes.
  * negative return codes mean an application error.

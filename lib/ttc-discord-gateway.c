@@ -9,10 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <ttc-http.h>
 #include <ttc-log.h>
-#include <ttc-ws.h>
 #include <unistd.h>
+
+#include <ttc-http/request.h>
+#include <ttc-http/response.h>
 
 #include <discord.h>
 #include <ttc-discord/api.h>
@@ -57,7 +58,7 @@ void discord_identify(ttc_discord_ctx_t *ctx) {
 	login_request.data = strdup(json_object_to_json_string(login));
 	login_request.len = strlen(json_object_to_json_string(login));
 
-	ttc_wss_write(ctx->gateway, login_request);
+	ttc_ws_write(ctx->gateway, login_request);
 
 	free(login_request.data);
 	json_object_put(login);
@@ -80,7 +81,7 @@ void discord_heartbeat(ttc_discord_ctx_t *ctx) {
 	heartreq.data = strdup(json_object_get_string(heartbeat));
 	heartreq.len = strlen(heartreq.data);
 
-	ttc_wss_write(ctx->gateway, heartreq);
+	ttc_ws_write(ctx->gateway, heartreq);
 	free(heartreq.data);
 	json_object_put(heartbeat);
 }
@@ -120,9 +121,9 @@ void discord_reconnect(ttc_discord_ctx_t *ctx) {
 	json_object_object_add(resume, "op", op);
 	json_object_object_add(resume, "d", d);
 
-	ttc_wss_free(ctx->gateway);
+	ttc_ws_free(ctx->gateway);
 
-	ttc_wss_t *wss = ttc_wss_create_from_host(ctx->resume_url, "443", ctx->ssl_ctx);
+	ttc_ws_t *ws = ttc_ws_create_from_host(ctx->resume_url, "443", ctx->ssl_ctx);
 
 	wreq.data = strdup(json_object_to_json_string(resume));
 	wreq.len = strlen(json_object_to_json_string(resume));
@@ -133,11 +134,11 @@ void discord_reconnect(ttc_discord_ctx_t *ctx) {
 
 	TTC_LOG_DEBUG("Resuming: %s\n", wreq.data);
 
-	ttc_wss_write(wss, wreq);
+	ttc_ws_write(ws, wreq);
 
 	json_object_put(resume);
 	free(wreq.data);
-	ctx->gateway = wss;
+	ctx->gateway = ws;
 }
 
 void handle_interaction_app_command(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
@@ -469,6 +470,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 			break;
 		case DiscordInteractionModalSubmit:
 			output->data.modal = ttc_discord_interaction_resolve_modal(object);
+			break;
 		case DiscordInteractionMsgComponent:
 			output->data.component = ttc_discord_interaction_resolve_component(object);
 		default:
@@ -616,8 +618,8 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 		}
 		case DiscordInvalidSession: {
 			TTC_LOG_DEBUG("Discord session invalidated creating new session\n%s\n", buffer->data);
-			ttc_wss_free(ctx->gateway);
-			ctx->gateway = ttc_wss_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
+			ttc_ws_free(ctx->gateway);
+			ctx->gateway = ttc_ws_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
 			if (!ctx->gateway) {
 				pthread_cancel(ctx->heart_thread);
 				pthread_exit(exit);
@@ -645,7 +647,7 @@ void *discord_gateway_read(void *vargp) {
 	ttc_ws_buffer_t *buffer;
 
 	while (1) {
-		buffer = ttc_wss_read(ctx->gateway);
+		buffer = ttc_ws_read(ctx->gateway);
 
 		switch (buffer->opcode) {
 			case 0: {                 /*the websocket closed without telling us*/

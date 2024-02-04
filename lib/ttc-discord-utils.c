@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ttc-discord/api.h>
-#include <ttc-http.h>
 #include <ttc-log.h>
 
 int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64_t rid,
@@ -97,7 +96,6 @@ int discord_get_user_position(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid
 	ttc_http_request_set_http_version(get_roles, HTTP_VER_11);
 	ttc_http_request_set_path(get_roles, buffer);
 	ttc_http_request_set_method(get_roles, TTC_HTTP_METHOD_GET);
-	TTC_LOG_DEBUG("%s\n", ttc_http_request_get_str(get_roles));
 
 	ttc_http_response_t *response = ttc_discord_api_send_request(ctx, get_roles);
 	TTC_LOG_DEBUG("%lu guild roles\n%s\n%s\n", gid, response->headers, response->data);

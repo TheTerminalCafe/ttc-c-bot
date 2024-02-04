@@ -6,6 +6,7 @@
 #include <json-c/json_object.h>
 #include <stddef.h>
 #include <ttc-discord/api.h>
+#include <ttc-http/sockets.h>
 #include <ttc-log.h>
 
 json_object *ttc_discord_embed_to_json(ttc_discord_embed_t *embed) {
@@ -98,9 +99,9 @@ ttc_http_response_t *ttc_discord_api_send_request(ttc_discord_ctx_t *ctx,
 
 	ttc_http_request_build(request);
 
-	ttc_https_request_send(request, ctx->api);
+	ttc_http_socket_send_request(ctx->api, request);
 
-	return ttc_https_get_response(ctx->api);
+	return ttc_http_get_response(ctx->api);
 }
 
 ttc_http_response_t *ttc_discord_api_send_json(ttc_discord_ctx_t *ctx, ttc_http_request_t *request,
@@ -115,7 +116,7 @@ ttc_http_response_t *ttc_discord_api_send_json(ttc_discord_ctx_t *ctx, ttc_http_
 	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(message)));
 	ttc_http_request_add_header(request, "Content-Length", length_str);
 
-	ttc_http_request_add_data(request, json_object_to_json_string(message));
+	ttc_http_request_set_data(request, json_object_to_json_string(message));
 
 	if (message) {
 		free(length_str);

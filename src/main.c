@@ -13,7 +13,6 @@
 #include <ttc-discord/interaction.h>
 #include <ttc-discord/moderation.h>
 #include <ttc-discord/ui.h>
-#include <ttc-http.h>
 #include <ttc-log.h>
 
 #include "command.h"

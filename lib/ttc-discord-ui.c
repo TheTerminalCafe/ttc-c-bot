@@ -4,7 +4,6 @@
 #include <ttc-discord/api.h>
 #include <ttc-discord/discord.h>
 
-#include <ttc-http.h>
 #include <ttc-log.h>
 
 int ttc_discord_add_component_listener(ttc_discord_ctx_t *ctx, const char *modal_id,

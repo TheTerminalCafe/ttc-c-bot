@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <ttc-discord/api.h>
 #include <ttc-discord/discord.h>
-#include <ttc-http.h>
+
 #include <ttc-log.h>
 
 int ttc_discord_send_simple_message(const char *str, ttc_discord_ctx_t *ctx, uint64_t cid) {
@@ -73,7 +73,6 @@ int ttc_discord_edit_embed(ttc_discord_embed_t *embed, ttc_discord_ctx_t *ctx, u
 
 	response = ttc_discord_api_send_json(ctx, request, message);
 	printf("%d\n", response->status);
-	printf("%s\n", ttc_http_request_get_str(request));
 	printf("response data %s\n", response->data);
 
 	ttc_http_request_free(request);

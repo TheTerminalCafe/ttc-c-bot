@@ -93,7 +93,6 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
 	ttc_http_request_set_path(request, url);
 
 	ttc_http_response_t *response = ttc_discord_api_send_json(ctx, request, message);
-	TTC_LOG_DEBUG("Response URL: %s\n", ttc_http_request_get_str(request));
 	TTC_LOG_DEBUG("Response update returned: %d\n%s\n", response->status, response->headers);
 
 	free(url);
