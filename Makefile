@@ -11,13 +11,13 @@ TARGET_STATIC=ttc-discord.a
 EXAMPLE=ttc-bot
 EXAMPLESRC=src/main.c src/command.c src/modals.c src/components.c
 INCLUDES=-I includes
-LIBS=-lttc-http -lttc-log -lssl -lcrypto -ljson-c
+LIBS=-lttc-http -lttc-log -lssl -lcrypto -ljson-c -lpthread
 
 all: $(TARGET) $(TARGET_STATIC) $(EXAMPLE)
 
 .c.o:
 	@echo $(CC) $@
-	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+	@$(CC) -fpic $(CFLAGS) $(INCLUDES) -c $< -o $@
 
 $(TARGET): $(COBJS)
 	@echo $(CC) $@
