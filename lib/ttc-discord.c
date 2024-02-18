@@ -21,8 +21,6 @@
 #include <ttc-discord/messages.h>
 #include <ttc-log.h>
 
-
-
 SSL_CTX *ssl_init() {
 	SSL_library_init();
 
@@ -162,6 +160,7 @@ int ttc_discord_run(ttc_discord_ctx_t *ctx) {
 	pthread_cancel(ctx->heart_thread);
 
 	pthread_join(ctx->read_thread, NULL);
+	pthread_join(ctx->heart_thread, NULL);
 
 	return 0;
 }

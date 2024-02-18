@@ -56,3 +56,26 @@ void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title
 			result_var = (snowflake_t) strtoull(option->value.string, NULL, 10);                         \
 		}                                                                                              \
 	} while (0)
+
+/**
+ * @brief ensure a integer is in a given range and if that's not the case send a response to a
+ * loading request and call `return;` to exit
+ *
+ * @param CTX discord context pointer
+ * @param INTERACTION discord interaction pointer
+ * @param VAL value of the integer
+ * @param MIN minimal allowed value for the integer (inclusive)
+ * @param MAX maximal allowed value for the integer (inclusive)
+ */
+#define ENSURE_INT_RANGE_LOADING(CTX, INTERACTION, VAL, MIN, MAX)                                  \
+	if (VAL < MIN) {                                                                                 \
+		ttc_discord_interaction_loading_respond(CTX, "You provided a bad value for" #VAL,              \
+																						"The minimum value for " #VAL " is " #MIN, 0xff0000,   \
+																						INTERACTION);                                          \
+		return;                                                                                        \
+	} else if (VAL > MAX) {                                                                          \
+		ttc_discord_interaction_loading_respond(CTX, "You provided a bad value for " #VAL,             \
+																						"The maximum value for " #VAL " is " #MAX, 0xff0000,   \
+																						INTERACTION);                                          \
+		return;                                                                                        \
+	}
