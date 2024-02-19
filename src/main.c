@@ -129,9 +129,8 @@ static command_t timeout = {.name = "timeout",
 														.options = timeout_opts,
 														.option_count = 6,
 														.allow_in_dms = false,
-														.default_permissions = DISCORD_PERMISSION_ADMIN |
-																									 DISCORD_PERMISSION_BAN |
-																									 DISCORD_PERMISSION_KICK};
+														.default_permissions =
+																DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_MODERATE_MEMBERS};
 
 int ttc_discord_create_text_input(ttc_discord_ctx_t *ctx, uint32_t type, const char *menu_id,
 																	uint64_t channel);
