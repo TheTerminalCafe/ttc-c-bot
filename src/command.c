@@ -418,3 +418,33 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 																						interaction);
 	}
 }
+
+void untimeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+											const char *url) {
+
+	ttc_discord_interaction_loading(ctx, url);
+	uint64_t target_user = 0;
+	char *reason = NULL;
+
+	ttc_discord_app_cmd_data_t *command = interaction->data.command;
+	for (size_t i = 0; i < command->opt_count; ++i) {
+		ttc_discord_app_cmd_opt_t *option = &command->options[i];
+		GET_COMMAND_ARGUMENT_USER(option, "user", target_user);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
+	}
+
+	// TODO: Add permission checks
+	int result = ttc_discord_timeout_member(ctx, target_user, interaction->guild_id, NULL, reason);
+	char buf[101];
+	if (result == 200) {
+		snprintf(buf, 101, "The user <@%" PRIu64 "> isn't timed out anymore", target_user);
+		ttc_discord_interaction_loading_respond(ctx, "User no longer timed out!", buf, 0x00ff00,
+																						interaction);
+	} else {
+		snprintf(buf, 101,
+						 "The timeout of the user <@%" PRIu64 "> couldn't be removed. HTTP response: %d",
+						 target_user, result);
+		ttc_discord_interaction_loading_respond(ctx, "Unable to remove timeout!", buf, 0xff0000,
+																						interaction);
+	}
+}

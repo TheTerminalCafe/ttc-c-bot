@@ -8,8 +8,8 @@
 #include <ttc-discord/gateway.h>
 #include <ttc-log.h>
 
-#include <ttc-http/response.h>
 #include <ttc-http/request.h>
+#include <ttc-http/response.h>
 
 int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *title,
 																					void (*callback)(ttc_discord_interaction_t *interaction,
