@@ -71,3 +71,4 @@ typedef struct command {
 int ttc_discord_run(ttc_discord_ctx_t *ctx);
 void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx);
 ttc_discord_ctx_t *ttc_discord_ctx_create(char *token);
+void ttc_discord_stop_bot(ttc_discord_ctx_t *ctx);

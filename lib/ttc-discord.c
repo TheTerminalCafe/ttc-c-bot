@@ -30,8 +30,8 @@ SSL_CTX *ssl_init() {
 	return SSL_CTX_new(TLS_client_method());
 }
 
-void ttc_cmd_quit(ttc_discord_ctx_t *ctx) {
-	ctx->running = 0;
+void ttc_discord_stop_bot(ttc_discord_ctx_t *ctx) {
+	sem_post(&ctx->finish_sem);
 }
 
 int ttc_cmd_embed(ttc_discord_ctx_t *ctx) {
@@ -95,7 +95,13 @@ title_error:
 	return res;
 }
 
-void ttc_cmd_loop(ttc_discord_ctx_t *ctx) {
+static void ttc_cmd_loop_cleanup(void *vargp) {
+	char **line_ptrptr = vargp;
+	free(*line_ptrptr);
+}
+
+void *ttc_cli_thread(void *vargp) {
+	ttc_discord_ctx_t *ctx = vargp;
 	char *line;
 	size_t size;
 	ssize_t length;
@@ -103,31 +109,28 @@ void ttc_cmd_loop(ttc_discord_ctx_t *ctx) {
 	line = NULL;
 	size = 0;
 
-	while (ctx->running) {
+	pthread_cleanup_push(ttc_cmd_loop_cleanup, &line);
+
+	while (1) {
 		printf("> ");
 		fflush(stdout);
 		length = getline(&line, &size, stdin);
 		if (strncmp("embed\n", line, length) == 0) {
 			ttc_cmd_embed(ctx);
 		} else if (strncmp("quit\n", line, length) == 0) {
-			ttc_cmd_quit(ctx);
+			ttc_discord_stop_bot(ctx);
 		}
 	}
-
-	/* Free the last line the rest where free'd by
-	 * rentry of the getline function so we need to free
-	 * the last one
-	 */
-	free(line);
+	pthread_cleanup_pop(1);
+	pthread_exit(NULL);
 }
 
 int ttc_discord_run(ttc_discord_ctx_t *ctx) {
+	sem_init(&ctx->finish_sem, 0, 0);
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	json_object *json_res, *url;
 	char *json_str;
-
-	ctx->running = 1;
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, "/api/v10/gateway/bot");
@@ -153,14 +156,17 @@ int ttc_discord_run(ttc_discord_ctx_t *ctx) {
 
 	discord_identify(ctx);
 	pthread_create(&ctx->read_thread, NULL, discord_gateway_read, ctx);
+	pthread_create(&ctx->cli_thread, NULL, ttc_cli_thread, ctx);
 
-	ttc_cmd_loop(ctx);
+	// when this semaphore gets available the bot stops
+	sem_wait(&ctx->finish_sem);
 
 	pthread_cancel(ctx->read_thread);
-	pthread_cancel(ctx->heart_thread);
-
 	pthread_join(ctx->read_thread, NULL);
+	pthread_cancel(ctx->heart_thread);
 	pthread_join(ctx->heart_thread, NULL);
+	pthread_cancel(ctx->cli_thread);
+	pthread_join(ctx->cli_thread, NULL);
 
 	return 0;
 }
@@ -185,6 +191,8 @@ void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
 	ttc_http_socket_free(ctx->api);
 
 	SSL_CTX_free(ctx->ssl_ctx);
+
+	sem_destroy(&ctx->finish_sem);
 
 	free(ctx);
 }
