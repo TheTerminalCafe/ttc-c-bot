@@ -194,6 +194,11 @@ int ttc_discord_parse_config(char *path, ttc_discord_ctx_t *ctx) {
 
 	fp = fopen(path, "r");
 
+	if (!fp) {
+		TTC_LOG_ERROR("Error opening config file: %s\n", strerror(errno));
+		return -1;
+	}
+
 	while (getline(&line, &size, fp) != -1) {
 		line[strcspn(line, "\n")] = 0; /*Remove newline*/
 		if (strncmp(line, "TOKEN=", 5) == 0) {
@@ -205,9 +210,7 @@ int ttc_discord_parse_config(char *path, ttc_discord_ctx_t *ctx) {
 
 	free(line);
 	if (!ctx->token) {
-		if (ctx->app_id) {
-			free(ctx->app_id);
-		}
+		free(ctx->app_id);
 		TTC_LOG_FATAL("Error token not in config file\n");
 		return -1;
 	} else if (!ctx->app_id) {

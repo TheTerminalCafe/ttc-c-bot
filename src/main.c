@@ -140,6 +140,10 @@ int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
 	ttc_discord_ctx_t *discord = ttc_discord_ctx_create("config.ini");
+	if (!discord) {
+		ttc_log_deinit_file();
+		return 1;
+	}
 
 	discord_create_application_command(&echo, discord, echo_handle);
 	discord_create_application_command(&kick, discord, kick_handle);
