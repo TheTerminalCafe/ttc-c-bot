@@ -57,6 +57,7 @@ json_object *discord_get_guild_member(ttc_discord_ctx_t *ctx, uint64_t gid, uint
 
 	response = ttc_discord_api_send_request(ctx, get_member);
 	if (response->status != 200) {
+		free(buffer);
 		return NULL;
 	}
 

@@ -22,8 +22,7 @@
 #include <ttc-discord/messages.h>
 
 void discord_identify(ttc_discord_ctx_t *ctx) {
-	json_object *login, *status, *properties, *os, *browser, *device, *intents, *opcode, *token,
-			*data;
+	json_object *login, *properties, *os, *browser, *device, *intents, *opcode, *token, *data;
 	ttc_ws_wrreq_t login_request;
 
 	login = json_object_new_object();
@@ -192,7 +191,6 @@ void handle_interaction_modal_submit(ttc_discord_interaction_t *interaction, ttc
 static ttc_discord_app_cmd_opt_t ttc_dc_command_resolve_option(json_object *data) {
 	ttc_discord_app_cmd_opt_t option = {0};
 	json_object *object;
-	json_bool found;
 
 	json_object_object_get_ex(data, "type", &object);
 	option.type = json_object_get_int64(object);
@@ -319,7 +317,7 @@ ttc_discord_component_data_t *ttc_discord_interaction_resolve_component(json_obj
 }
 
 ttc_discord_modal_t *ttc_discord_interaction_resolve_modal(json_object *data) {
-	json_object *id, *components, *row_components, *component, *rows, *obj;
+	json_object *id, *components, *row_components, *component, *rows;
 	ttc_discord_modal_t *modal = calloc(1, sizeof(ttc_discord_modal_t));
 
 	json_object_object_get_ex(data, "custom_id", &id);
@@ -388,8 +386,7 @@ void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 
 			free(component->id);
 			free(component);
-		}
-
+		} break;
 		default:
 			break;
 	}
@@ -433,7 +430,7 @@ ttc_discord_member_t *ttc_discord_member_json_to_struct(json_object *member) {
 }
 
 ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *interaction) {
-	json_object *object, *member, *user;
+	json_object *object, *member;
 	json_bool found;
 	ttc_discord_interaction_t *output;
 
@@ -445,6 +442,7 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 		/* ID is required so this seems like this isnt a real
 		 * interaction but some other json object given by mistake
 		 */
+		free(output);
 		return NULL;
 	}
 

@@ -166,8 +166,6 @@ int ttc_discord_run(ttc_discord_ctx_t *ctx) {
 }
 
 void ttc_discord_ctx_destroy(ttc_discord_ctx_t *ctx) {
-	cmd_listeners_t *tmp, *listener;
-
 	free(ctx->command_callbacks);
 	free(ctx->modal_callbacks);
 	free(ctx->components_callbacks);
@@ -223,7 +221,7 @@ int ttc_discord_parse_config(char *path, ttc_discord_ctx_t *ctx) {
 
 ttc_discord_ctx_t *ttc_discord_ctx_create(char *path) {
 	ttc_discord_ctx_t *discord = calloc(1, sizeof(ttc_discord_ctx_t));
-	int apisocket = 0, length;
+	int length;
 
 	if (ttc_discord_parse_config(path, discord) < 0) {
 		free(discord);

@@ -13,8 +13,8 @@
 #include <ttc-log.h>
 
 #include <ttc-http/request.h>
-#include <ttc-http/sockets.h>
 #include <ttc-http/response.h>
+#include <ttc-http/sockets.h>
 
 #include <json-c/json.h>
 
@@ -22,7 +22,7 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 																			ttc_discord_embed_t *embed) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	json_object *message, *author, *embeds, *field, *em;
+	json_object *message, *author, *embeds, *em;
 	char *url = NULL;
 	int length;
 
@@ -36,6 +36,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 	ttc_http_request_set_path(request, url);
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_GET);
+
+	free(url);
 
 	response = ttc_discord_api_send_request(ctx, request);
 	TTC_LOG_WARN("%s\n", response->data);
