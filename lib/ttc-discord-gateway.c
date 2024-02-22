@@ -371,6 +371,7 @@ void ttc_discord_interaction_free(ttc_discord_interaction_t *interaction) {
 				free(interaction->data.modal->fields[ind].value);
 				free(interaction->data.modal->fields[ind].id);
 			}
+			free(interaction->data.modal->id);
 			free(interaction->data.modal);
 			break;
 		case DiscordInteractionMsgComponent: {

@@ -40,6 +40,7 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 	free(url);
 
 	response = ttc_discord_api_send_request(ctx, request);
+	ttc_http_request_free(request);
 	TTC_LOG_WARN("%s\n", response->data);
 
 	length = response->status;
@@ -50,6 +51,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 		json_object_object_get_ex(message, "author", &author);
 		if (strcmp(json_object_get_string(json_object_object_get(author, "id")), ctx->app_id) != 0) {
 			TTC_LOG_ERROR("The is not a message by the bot can't decode this\n");
+			json_object_put(message);
+			ttc_http_response_free(response);
 			return -1;
 		}
 
@@ -58,6 +61,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 
 		embed->title = strdup(json_object_get_string(json_object_object_get(em, "title")));
 		embed->description = strdup(json_object_get_string(json_object_object_get(em, "description")));
+		json_object_put(message);
+		ttc_http_response_free(response);
 		return 0;
 	}
 
