@@ -1,5 +1,6 @@
 #include <json-c/json_object.h>
 #include <json-c/json_tokener.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -147,10 +148,17 @@ static command_t shutdown_cmd = {.name = "shutdown",
 int ttc_discord_create_text_input(ttc_discord_ctx_t *ctx, uint32_t type, const char *menu_id,
 																	uint64_t channel);
 
+static ttc_discord_ctx_t *discord;
+
+static void handle_signal(int signal) {
+	(void) signal;
+	ttc_discord_stop_bot(discord);
+}
+
 int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
-	ttc_discord_ctx_t *discord = ttc_discord_ctx_create("config.ini");
+	discord = ttc_discord_ctx_create("config.ini");
 
 	discord_create_application_command(&echo, discord, echo_handle);
 	discord_create_application_command(&kick, discord, kick_handle);
@@ -166,6 +174,9 @@ int main() {
 
 	ttc_discord_add_modal_listener(discord, "embed_modal", ttc_embed_modal_submit);
 	ttc_discord_add_component_listener(discord, "role_select", ttc_self_roles_picked);
+
+	signal(SIGINT, handle_signal);
+	signal(SIGTERM, handle_signal);
 
 	ttc_discord_run(discord);
 
