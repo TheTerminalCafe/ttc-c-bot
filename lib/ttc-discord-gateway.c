@@ -88,6 +88,7 @@ void discord_heartbeat(ttc_discord_ctx_t *ctx) {
 
 static void *discord_heart(void *vargp) {
 	ttc_discord_ctx_t *ctx = vargp;
+	int oldcancelstate;
 	struct timespec tmspec;
 
 	tmspec.tv_sec = ctx->heart_interval / 1000;
@@ -98,7 +99,9 @@ static void *discord_heart(void *vargp) {
 		// clang-format off
 		while(nanosleep(&tmspec, &tmspec));
 		// clang-format on
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldcancelstate);
 		discord_heartbeat(ctx);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldcancelstate);
 	}
 }
 
@@ -583,10 +586,11 @@ void discord_handle_hello(json_object *response, ttc_discord_ctx_t *ctx) {
 
 	ctx->heart_interval = json_object_get_uint64(heartbeat_interval);
 	TTC_LOG_DEBUG("Discord Hello says to beat heart every %lu milliseconds\n", ctx->heart_interval);
+	if (ctx->heart_thread) {
+		pthread_cancel(ctx->heart_thread);
+		pthread_join(ctx->heart_thread, NULL);
+	}
 	pthread_create(&ctx->heart_thread, NULL, discord_heart, ctx);
-}
-
-void discord_polite_exit() {
 }
 
 void discord_ws_closed(uint16_t close_code, ttc_discord_ctx_t *ctx) {
