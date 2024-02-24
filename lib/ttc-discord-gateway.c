@@ -1,6 +1,7 @@
 #include <json-c/json.h>
 #include <json-c/json_object.h>
 #include <json-c/json_types.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -644,10 +645,26 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 void *discord_gateway_read(void *vargp) {
 	ttc_discord_ctx_t *ctx = vargp;
 	ttc_ws_buffer_t *buffer;
+	short revents;
+	int oldcancelstate;
 
 	while (1) {
-		buffer = ttc_ws_read(ctx->gateway);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldcancelstate);
+		// reset revents since it might stay unmodified
+		revents = 0;
+		ttc_ws_poll(ctx->gateway, POLLIN, &revents);
 
+		if (revents & (POLLERR | POLLHUP)) {
+			// TODO: Instead of stopping try to recreate the connection!
+			TTC_LOG_ERROR(
+					"Polling the gateway socket returned a POLLERR or POLLHUP: %hd\nStopping the bot!\n",
+					revents);
+			ttc_discord_stop_bot(ctx);
+			pthread_exit(NULL);
+		}
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldcancelstate);
+
+		buffer = ttc_ws_read(ctx->gateway);
 		switch (buffer->opcode) {
 			case 0: {                 /*the websocket closed without telling us*/
 				discord_reconnect(ctx); /*To reconnect*/
