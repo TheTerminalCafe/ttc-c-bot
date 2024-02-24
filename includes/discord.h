@@ -2,6 +2,7 @@
 
 #include <openssl/ssl.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
@@ -31,8 +32,9 @@ struct _ttc_discord_ctx_s {
 	char *session_id;
 	char *gateway_url;
 	uint64_t sequence;
-	pthread_t read_thread, heart_thread;
-	int running;
+	pthread_t read_thread, heart_thread, cli_thread;
+	// this semaphore is locked while the bot is running. Unlocking it stops the bot safely
+	sem_t finish_sem;
 
 	cmd_listeners_t *command_callbacks;
 	uint64_t callbacks;

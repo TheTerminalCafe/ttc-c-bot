@@ -1,3 +1,4 @@
+#include "discord.h"
 #include "ttc-discord/api.h"
 #include "ttc-discord/gateway.h"
 #include <stdint.h>
@@ -422,6 +423,15 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 	}
 }
 
+
+void shutdown_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+										 const char *url) {
+
+	ttc_discord_interaction_loading(ctx, url);
+	ttc_discord_interaction_loading_respond(ctx, "Bot shutting down!", "The bot will now shut down",
+																					0x00ff00, interaction);
+	ttc_discord_stop_bot(ctx);
+}
 void untimeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 											const char *url) {
 
@@ -450,4 +460,5 @@ void untimeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t 
 		ttc_discord_interaction_loading_respond(ctx, "Unable to remove timeout!", buf, 0xff0000,
 																						interaction);
 	}
+
 }

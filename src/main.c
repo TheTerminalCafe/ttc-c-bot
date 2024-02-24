@@ -1,5 +1,6 @@
 #include <json-c/json_object.h>
 #include <json-c/json_tokener.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -149,12 +150,30 @@ static command_t untimeout = {.name = "untimeout",
 															.default_permissions =
 																	DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_MODERATE_MEMBERS};
 
+static command_t shutdown_cmd = {.name = "shutdown",
+																 .description = "turn off the bot",
+																 .type = 1,
+																 .options = NULL,
+																 .option_count = 0,
+																 .allow_in_dms =
+																		 false, // to ensure the ADMIN permission is at least checked by
+																						// Discord. We should add a better check though
+																 .default_permissions = DISCORD_PERMISSION_ADMIN};
+
 int ttc_discord_create_text_input(ttc_discord_ctx_t *ctx, uint32_t type, const char *menu_id,
 																	uint64_t channel);
+
+static ttc_discord_ctx_t *discord;
+
+static void handle_signal(int signal) {
+	(void) signal;
+	ttc_discord_stop_bot(discord);
+}
 
 int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
+	discord = ttc_discord_ctx_create("config.ini");
 	ttc_discord_ctx_t *discord = ttc_discord_ctx_create("config.ini");
 	if (!discord) {
 		ttc_log_deinit_file();
@@ -169,6 +188,7 @@ int main() {
 	// TODO: Use better method/approach to prevent being ratelimited while registering commands
 	// globally
 	sleep(10);
+	discord_create_application_command(&shutdown_cmd, discord, shutdown_handle);
 	discord_create_application_command(&untimeout, discord, untimeout_handle);
 
 	ttc_discord_create_select_menu(discord, 6, "role_select", 913091622592458833, 25);
@@ -176,9 +196,13 @@ int main() {
 	ttc_discord_add_modal_listener(discord, "embed_modal", ttc_embed_modal_submit);
 	ttc_discord_add_component_listener(discord, "role_select", ttc_self_roles_picked);
 
+	signal(SIGINT, handle_signal);
+	signal(SIGTERM, handle_signal);
+
 	ttc_discord_run(discord);
 
 	ttc_discord_ctx_destroy(discord);
 	ttc_log_deinit_file();
+
 	return 0;
 }
