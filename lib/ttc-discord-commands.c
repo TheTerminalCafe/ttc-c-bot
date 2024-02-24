@@ -8,8 +8,8 @@
 #include <ttc-discord/gateway.h>
 #include <ttc-log.h>
 
-#include <ttc-http/response.h>
 #include <ttc-http/request.h>
+#include <ttc-http/response.h>
 
 int discord_app_register_command_listener(ttc_discord_ctx_t *ctx, const char *title,
 																					void (*callback)(ttc_discord_interaction_t *interaction,
@@ -39,7 +39,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 			*option_objs[25];
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	char *length_str, *url, *permissions;
+	char *url, *permissions;
 	int result, length;
 
 	length = snprintf(NULL, 0, "%lu", command->default_permissions);
@@ -91,6 +91,7 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	url = calloc(1, length + 1);
 	if (!url) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
+		free(permissions);
 		return -1;
 	}
 

@@ -32,6 +32,8 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 			return;
 		}
 		if (ttc_discord_message_extract_embed(ctx, strtoull(channel_id, NULL, 10), mid, &embed)) {
+			free(embed.title);
+			free(embed.description);
 			ttc_discord_interaction_respond_embed(ctx, "I'm Not the Author/message Not found",
 																						"I didn't author this message can't proceed\n"
 																						"Or we where unable to find a message with this ID\n",
@@ -80,7 +82,6 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 
 	object = ttc_discord_form_to_json(&modal);
 	type = json_object_new_int(DiscordInteractionCallbackModal);
-	data = json_object_new_object();
 	message = json_object_new_object();
 
 	json_object_object_add(message, "type", type);
@@ -98,7 +99,9 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 	TTC_LOG_WARN("response to echo: %d\n%s\n", response->status, response->data);
 	ttc_http_request_free(request);
 	ttc_http_response_free(response);
-	json_object_put(data);
+	json_object_put(message);
+	free(embed.title);
+	free(embed.description);
 }
 
 void userinfo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,

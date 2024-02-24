@@ -7,8 +7,7 @@
 int ttc_discord_kick_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid, char *reason) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	ttc_discord_embed_t embed;
-	int result = 0;
+	int result;
 	char *url;
 	const char *fmt = "/api/v10/guilds/%lu/members/%lu";
 	int length = 0;

@@ -13,8 +13,8 @@
 #include <ttc-log.h>
 
 #include <ttc-http/request.h>
-#include <ttc-http/sockets.h>
 #include <ttc-http/response.h>
+#include <ttc-http/sockets.h>
 
 #include <json-c/json.h>
 
@@ -22,7 +22,7 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 																			ttc_discord_embed_t *embed) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	json_object *message, *author, *embeds, *field, *em;
+	json_object *message, *author, *embeds, *em;
 	char *url = NULL;
 	int length;
 
@@ -37,7 +37,10 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 	ttc_http_request_set_http_version(request, HTTP_VER_11);
 	ttc_http_request_set_method(request, TTC_HTTP_METHOD_GET);
 
+	free(url);
+
 	response = ttc_discord_api_send_request(ctx, request);
+	ttc_http_request_free(request);
 	TTC_LOG_WARN("%s\n", response->data);
 
 	length = response->status;
@@ -48,6 +51,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 		json_object_object_get_ex(message, "author", &author);
 		if (strcmp(json_object_get_string(json_object_object_get(author, "id")), ctx->app_id) != 0) {
 			TTC_LOG_ERROR("The is not a message by the bot can't decode this\n");
+			json_object_put(message);
+			ttc_http_response_free(response);
 			return -1;
 		}
 
@@ -56,6 +61,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 
 		embed->title = strdup(json_object_get_string(json_object_object_get(em, "title")));
 		embed->description = strdup(json_object_get_string(json_object_object_get(em, "description")));
+		json_object_put(message);
+		ttc_http_response_free(response);
 		return 0;
 	}
 
