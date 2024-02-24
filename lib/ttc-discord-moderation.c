@@ -7,8 +7,7 @@
 int ttc_discord_kick_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid, char *reason) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	ttc_discord_embed_t embed;
-	int result = 0;
+	int result;
 	char *url;
 	const char *fmt = "/api/v10/guilds/%lu/members/%lu";
 	int length = 0;
@@ -129,7 +128,11 @@ int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, snowflake_t uid, snowflak
 	snprintf(url, length + 1, format, gid, uid);
 
 	root = json_object_new_object();
-	end_timestamp_json = json_object_new_string(end_timestamp);
+	if (end_timestamp) {
+		end_timestamp_json = json_object_new_string(end_timestamp);
+	} else {
+		end_timestamp_json = json_object_new_null();
+	}
 	json_object_object_add(root, "communication_disabled_until", end_timestamp_json);
 
 	request = ttc_http_new_request();

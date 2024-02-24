@@ -33,6 +33,8 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 			return;
 		}
 		if (ttc_discord_message_extract_embed(ctx, strtoull(channel_id, NULL, 10), mid, &embed)) {
+			free(embed.title);
+			free(embed.description);
 			ttc_discord_interaction_respond_embed(ctx, "I'm Not the Author/message Not found",
 																						"I didn't author this message can't proceed\n"
 																						"Or we where unable to find a message with this ID\n",
@@ -81,7 +83,6 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 
 	object = ttc_discord_form_to_json(&modal);
 	type = json_object_new_int(DiscordInteractionCallbackModal);
-	data = json_object_new_object();
 	message = json_object_new_object();
 
 	json_object_object_add(message, "type", type);
@@ -99,7 +100,9 @@ void echo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 	TTC_LOG_WARN("response to echo: %d\n%s\n", response->status, response->data);
 	ttc_http_request_free(request);
 	ttc_http_response_free(response);
-	json_object_put(data);
+	json_object_put(message);
+	free(embed.title);
+	free(embed.description);
 }
 
 void userinfo_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
@@ -420,6 +423,7 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 	}
 }
 
+
 void shutdown_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 										 const char *url) {
 
@@ -427,4 +431,34 @@ void shutdown_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *
 	ttc_discord_interaction_loading_respond(ctx, "Bot shutting down!", "The bot will now shut down",
 																					0x00ff00, interaction);
 	ttc_discord_stop_bot(ctx);
+}
+void untimeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+											const char *url) {
+
+	ttc_discord_interaction_loading(ctx, url);
+	uint64_t target_user = 0;
+	char *reason = NULL;
+
+	ttc_discord_app_cmd_data_t *command = interaction->data.command;
+	for (size_t i = 0; i < command->opt_count; ++i) {
+		ttc_discord_app_cmd_opt_t *option = &command->options[i];
+		GET_COMMAND_ARGUMENT_USER(option, "user", target_user);
+		GET_COMMAND_ARGUMENT_STRING(option, "reason", reason);
+	}
+
+	// TODO: Add permission checks
+	int result = ttc_discord_timeout_member(ctx, target_user, interaction->guild_id, NULL, reason);
+	char buf[101];
+	if (result == 200) {
+		snprintf(buf, 101, "The user <@%" PRIu64 "> isn't timed out anymore", target_user);
+		ttc_discord_interaction_loading_respond(ctx, "User no longer timed out!", buf, 0x00ff00,
+																						interaction);
+	} else {
+		snprintf(buf, 101,
+						 "The timeout of the user <@%" PRIu64 "> couldn't be removed. HTTP response: %d",
+						 target_user, result);
+		ttc_discord_interaction_loading_respond(ctx, "Unable to remove timeout!", buf, 0xff0000,
+																						interaction);
+	}
+
 }

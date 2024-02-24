@@ -12,3 +12,5 @@ void timeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *c
 										const char *url);
 void shutdown_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
 										 const char *url);
+void untimeout_handle(ttc_discord_interaction_t *interaction, ttc_discord_ctx_t *ctx,
+											const char *url);

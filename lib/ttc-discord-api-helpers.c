@@ -10,8 +10,7 @@
 #include <ttc-log.h>
 
 json_object *ttc_discord_embed_to_json(ttc_discord_embed_t *embed) {
-	json_object *json_embed, *name, *desc, *color, *required;
-	int result;
+	json_object *json_embed, *name, *desc, *color;
 
 	json_embed = json_object_new_object();
 
@@ -111,15 +110,14 @@ ttc_http_response_t *ttc_discord_api_send_json(ttc_discord_ctx_t *ctx, ttc_http_
 
 	ttc_http_request_add_header(request, "Content-Type", "application/json");
 
-	length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(message)));
+	length = snprintf(NULL, 0, "%zu", strlen(json_object_to_json_string(message)));
 	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(message)));
+	snprintf(length_str, length + 1, "%zu", strlen(json_object_to_json_string(message)));
 	ttc_http_request_add_header(request, "Content-Length", length_str);
 
 	ttc_http_request_set_data(request, json_object_to_json_string(message));
 
-	if (message) {
-		free(length_str);
-	}
+	free(length_str);
+
 	return ttc_discord_api_send_request(ctx, request);
 }

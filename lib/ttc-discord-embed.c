@@ -2,8 +2,8 @@
 #include <discord.h>
 #include <json-c/json_object.h>
 
-#include <ttc-http/response.h>
 #include <ttc-http/request.h>
+#include <ttc-http/response.h>
 #include <ttc-log.h>
 
 int ttc_discord_send_embed_modal(ttc_discord_ctx_t *ctx, const char *url) {

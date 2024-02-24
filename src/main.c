@@ -131,9 +131,24 @@ static command_t timeout = {.name = "timeout",
 														.options = timeout_opts,
 														.option_count = 6,
 														.allow_in_dms = false,
-														.default_permissions = DISCORD_PERMISSION_ADMIN |
-																									 DISCORD_PERMISSION_BAN |
-																									 DISCORD_PERMISSION_KICK};
+														.default_permissions =
+																DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_MODERATE_MEMBERS};
+
+static command_opt_t untimeout_opts[] = {
+		{.name = "user", .description = "user to untimeout", .type = DiscordOptionUser, .required = 1},
+		{.name = "reason",
+		 .description = "reason why the timeout was removed",
+		 .type = DiscordOptionString,
+		 .required = 0}};
+
+static command_t untimeout = {.name = "untimeout",
+															.description = "untimeout member",
+															.type = 1,
+															.options = untimeout_opts,
+															.option_count = 2,
+															.allow_in_dms = false,
+															.default_permissions =
+																	DISCORD_PERMISSION_ADMIN | DISCORD_PERMISSION_MODERATE_MEMBERS};
 
 static command_t shutdown_cmd = {.name = "shutdown",
 																 .description = "turn off the bot",
@@ -159,6 +174,11 @@ int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
 	discord = ttc_discord_ctx_create("config.ini");
+	ttc_discord_ctx_t *discord = ttc_discord_ctx_create("config.ini");
+	if (!discord) {
+		ttc_log_deinit_file();
+		return 1;
+	}
 
 	discord_create_application_command(&echo, discord, echo_handle);
 	discord_create_application_command(&kick, discord, kick_handle);
@@ -169,6 +189,7 @@ int main() {
 	// globally
 	sleep(10);
 	discord_create_application_command(&shutdown_cmd, discord, shutdown_handle);
+	discord_create_application_command(&untimeout, discord, untimeout_handle);
 
 	ttc_discord_create_select_menu(discord, 6, "role_select", 913091622592458833, 25);
 

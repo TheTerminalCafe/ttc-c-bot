@@ -92,6 +92,7 @@ typedef enum {
 	DiscordOptionAttachment = 11,
 } DISCORD_APP_COMMAND_OPTION_TYPES;
 
+// TODO: Check whether something like the UINT64_C macro needs to be used
 #define DISCORD_PERMISSION_INSTANT_INVITE 1 << 0
 #define DISCORD_PERMISSION_KICK 1 << 1
 #define DISCORD_PERMISSION_BAN 1 << 2
@@ -118,6 +119,7 @@ typedef enum {
 #define DISCORD_PERMISSION_DEAFEN 1 << 23
 #define DISCORD_PERMISSION_MOVE_MEMBERS 1 << 24
 #define DISCORD_PERMISSION_USE_VAD 1 << 25
+#define DISCORD_PERMISSION_MODERATE_MEMBERS 1ULL << 40
 /*TODO: the rest*/
 
 typedef struct ttc_discord_user_s {

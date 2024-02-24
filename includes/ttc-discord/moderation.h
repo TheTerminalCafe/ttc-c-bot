@@ -35,12 +35,12 @@ int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid, c
 													 uint32_t seconds);
 
 /**
- * @brief disable communication of a member until a timestamp
+ * @brief disable communication of a member until a timestamp or remove the timeout
  * @param ctx is a pointer ot the discord context
  * @param uid is the user id of the account whose communication should be disabled
  * @param gid is the guild id that should be used
- * @param end_timestamp is ISO8601 timestamp until when the communication should be disabled.
- *				It can only be up to 28 days in the future
+ * @param end_timestamp is a ISO8601 timestamp until when the communication should be disabled or
+ * NULL. It can only be up to 28 days in the future. If it's NULL the timeout is removed
  * @param reason to show in the audit log. Can be NULL
  *
  * @return http status code of the request

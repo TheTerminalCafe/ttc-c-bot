@@ -41,7 +41,6 @@ void ttc_discord_interaction_respond_embed(ttc_discord_ctx_t *ctx, char *title, 
 }
 
 void ttc_discord_interaction_loading(ttc_discord_ctx_t *ctx, const char *url) {
-	ttc_discord_embed_t embed = {0};
 	json_object *type, *interaction;
 
 	interaction = json_object_new_object();
