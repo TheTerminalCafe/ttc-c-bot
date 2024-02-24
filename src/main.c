@@ -174,7 +174,6 @@ int main() {
 	ttc_log_set_level(TtcLogAll);
 	ttc_log_init_file("log.txt");
 	discord = ttc_discord_ctx_create("config.ini");
-	ttc_discord_ctx_t *discord = ttc_discord_ctx_create("config.ini");
 	if (!discord) {
 		ttc_log_deinit_file();
 		return 1;
