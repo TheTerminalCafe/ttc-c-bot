@@ -625,8 +625,9 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 			ttc_ws_free(ctx->gateway);
 			ctx->gateway = ttc_ws_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
 			if (!ctx->gateway) {
-				pthread_cancel(ctx->heart_thread);
-				pthread_exit(exit);
+				TTC_LOG_ERROR("Couldn't reconnect after receiving a invalid session. Shutting down!\n");
+				ttc_discord_stop_bot(ctx);
+				pthread_exit(NULL);
 			}
 			break;
 		}
