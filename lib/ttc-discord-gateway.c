@@ -515,16 +515,13 @@ ttc_discord_interaction_t *ttc_discord_interaction_to_struct(json_object *intera
 
 void handle_interaction(json_object *object, ttc_discord_ctx_t *ctx) {
 	ttc_discord_interaction_t *interaction;
-	const char *fmt = "/api/v10/interactions/%lu/%s/callback";
-	int length;
-	char *url = NULL;
+	char *url;
 
 	TTC_LOG_DEBUG("%s\n", json_object_to_json_string(object));
 	interaction = ttc_discord_interaction_to_struct(object);
 
-	length = snprintf(NULL, 0, fmt, interaction->id, interaction->token);
-	url = calloc(1, length + 1);
-	length = snprintf(url, length + 1, fmt, interaction->id, interaction->token);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/interactions/%" PRIu64 "/%s/callback", interaction->id,
+												 interaction->token);
 
 	switch (interaction->type) {
 		case DiscordInteractionAppCmd:

@@ -28,7 +28,7 @@ int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id, int bt
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *length_str, *url;
-	int length, result;
+	int result;
 	json_object *message, *components, *button, *type, *label, *style, *id, *row, *artype,
 			*arcomponents;
 
@@ -57,13 +57,8 @@ int ttc_discord_create_button(ttc_discord_ctx_t *ctx, const char *btn_id, int bt
 	json_object_array_add(arcomponents, button);
 	json_object_object_add(message, "components", components);
 
-	length = snprintf(NULL, 0, "%zu", strlen(json_object_to_json_string(message)));
-	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%zu", strlen(json_object_to_json_string(message)));
-
-	length = snprintf(NULL, 0, "/api/v10/channels/%lu/messages", channel);
-	url = calloc(1, length + 1);
-	length = snprintf(url, length + 1, "/api/v10/channels/%lu/messages", channel);
+	CREATE_SNPRINTF_STRING(length_str, "%zu", strlen(json_object_to_json_string(message)));
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages", channel);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -86,7 +81,7 @@ int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type, const 
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *length_str, *url;
-	int length, result;
+	int result;
 	json_object *message, *components, *menu, *menu_type, *label, *style, *id, *row, *artype,
 			*arcomponents, *max_val;
 	/*Create an action row for the button*/
@@ -112,13 +107,8 @@ int ttc_discord_create_select_menu(ttc_discord_ctx_t *ctx, uint32_t type, const 
 	json_object_object_add(message, "components", components);
 	json_object_object_add(menu, "max_values", max_val);
 
-	length = snprintf(NULL, 0, "%zu", strlen(json_object_to_json_string(message)));
-	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%zu", strlen(json_object_to_json_string(message)));
-
-	length = snprintf(NULL, 0, "/api/v10/channels/%lu/messages", channel);
-	url = calloc(1, length + 1);
-	length = snprintf(url, length + 1, "/api/v10/channels/%lu/messages", channel);
+	CREATE_SNPRINTF_STRING(length_str, "%zu", strlen(json_object_to_json_string(message)));
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages", channel);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);

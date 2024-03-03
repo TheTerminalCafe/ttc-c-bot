@@ -65,15 +65,12 @@ void ttc_discord_interaction_loading(ttc_discord_ctx_t *ctx, const char *url) {
 void ttc_discord_interaction_loading_respond(ttc_discord_ctx_t *ctx, char *title, char *description,
 																						 uint32_t color,
 																						 ttc_discord_interaction_t *interaction) {
-	const char *fmt = "/api/v10/webhooks/%lu/%s/messages/@original";
 	char *url;
 	ttc_discord_embed_t embed = {0};
 	json_object *embed_object, *message, *em_array;
-	int length;
 
-	length = snprintf(NULL, 0, fmt, interaction->app_id, interaction->token);
-	url = calloc(1, length + 1);
-	snprintf(url, length + 1, fmt, interaction->app_id, interaction->token);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/webhooks/%" PRIu64 "/%s/messages/@original",
+												 interaction->app_id, interaction->token);
 
 	embed.title = title;
 	embed.description = description;

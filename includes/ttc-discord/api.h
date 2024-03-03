@@ -5,9 +5,8 @@
 #include <ttc-discord/discord.h>
 #include <ttc-discord/gateway.h>
 
-#include <ttc-http/response.h>
 #include <ttc-http/request.h>
-
+#include <ttc-http/response.h>
 
 /* all API Calls here return one of two types of codes.
  * negative return codes mean an application error.
@@ -37,6 +36,24 @@ typedef enum {
 	DiscordButtonDanger = 4,
 	DiscordButtonLink = 5
 } DISCORD_BUTTON_STYLES;
+
+#include <inttypes.h>
+#include <stdio.h>
+/**
+ * @brief create a string on the heap via double snprintf call
+ *
+ * @param result pointer of where the result should be stored
+ * @param format format string
+ * @param ... optional arguments for the format string
+ */
+#define CREATE_SNPRINTF_STRING(result, format, ...)                                                \
+	do {                                                                                             \
+		int _length = snprintf(NULL, 0, format, __VA_ARGS__);                                          \
+		result = calloc(1, _length + 1);                                                               \
+		if (result) {                                                                                  \
+			snprintf(result, _length + 1, format, __VA_ARGS__);                                          \
+		}                                                                                              \
+	} while (0)
 
 int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, snowflake_t mid,
 																			ttc_discord_embed_t *embed);

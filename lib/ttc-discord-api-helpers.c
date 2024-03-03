@@ -106,13 +106,10 @@ ttc_http_response_t *ttc_discord_api_send_request(ttc_discord_ctx_t *ctx,
 ttc_http_response_t *ttc_discord_api_send_json(ttc_discord_ctx_t *ctx, ttc_http_request_t *request,
 																							 json_object *message) {
 	char *length_str;
-	int length;
 
 	ttc_http_request_add_header(request, "Content-Type", "application/json");
 
-	length = snprintf(NULL, 0, "%zu", strlen(json_object_to_json_string(message)));
-	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%zu", strlen(json_object_to_json_string(message)));
+	CREATE_SNPRINTF_STRING(length_str, "%zu", strlen(json_object_to_json_string(message)));
 	ttc_http_request_add_header(request, "Content-Length", length_str);
 
 	ttc_http_request_set_data(request, json_object_to_json_string(message));

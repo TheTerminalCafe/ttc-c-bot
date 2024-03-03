@@ -12,15 +12,10 @@ int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64
 											const char *method) {
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
-	const char *fmt = "/api/v10/guilds/%lu/members/%lu/roles/%lu";
 	char *url;
-	int length = 0, result;
 
-	length = snprintf(NULL, 0, fmt, gid, uid, rid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, gid, uid, rid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64 "/roles/%" PRIu64, gid,
+												 uid, rid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -29,7 +24,7 @@ int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64
 	ttc_http_request_add_header(request, "Content-Length", "0");
 	response = ttc_discord_api_send_request(ctx, request);
 
-	result = response->status;
+	int result = response->status;
 	TTC_LOG_INFO("Reponse Role: %s\n", response->data);
 
 	free(url);
@@ -41,13 +36,9 @@ int discord_user_role(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid, uint64
 json_object *discord_get_guild_member(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid) {
 	ttc_http_request_t *get_member;
 	ttc_http_response_t *response;
-	const char *fmt = "/api/v10/guilds/%lu/members/%lu";
 	char *buffer;
-	int length;
 
-	length = snprintf(NULL, 0, fmt, gid, uid);
-	buffer = calloc(1, length + 1);
-	length = snprintf(buffer, length + 1, fmt, gid, uid);
+	CREATE_SNPRINTF_STRING(buffer, "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64, gid, uid);
 
 	get_member = ttc_http_new_request();
 
@@ -72,8 +63,7 @@ int discord_get_user_position(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid
 	ttc_http_request_t *get_roles;
 	json_object *member, *mroles;
 	json_object *roles;
-	char *fmt = "/api/v10/guilds/%lu/roles";
-	int length;
+	char *buffer;
 	uint32_t highest = 0;
 
 	member = discord_get_guild_member(ctx, gid, uid);
@@ -89,10 +79,7 @@ int discord_get_user_position(ttc_discord_ctx_t *ctx, uint64_t gid, uint64_t uid
 
 	get_roles = ttc_http_new_request();
 
-	length = snprintf(NULL, 0, fmt, gid);
-
-	char *buffer = calloc(1, length + 1);
-	length = snprintf(buffer, length + 1, fmt, gid);
+	CREATE_SNPRINTF_STRING(buffer, "/api/v10/guilds/%" PRIu64 "/roles", gid);
 
 	ttc_http_request_set_http_version(get_roles, HTTP_VER_11);
 	ttc_http_request_set_path(get_roles, buffer);
