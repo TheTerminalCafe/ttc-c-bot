@@ -1,6 +1,7 @@
 #include <json-c/json.h>
 #include <json-c/json_object.h>
 #include <json-c/json_types.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -87,6 +88,7 @@ void discord_heartbeat(ttc_discord_ctx_t *ctx) {
 
 static void *discord_heart(void *vargp) {
 	ttc_discord_ctx_t *ctx = vargp;
+	int oldcancelstate;
 	struct timespec tmspec;
 
 	tmspec.tv_sec = ctx->heart_interval / 1000;
@@ -97,7 +99,9 @@ static void *discord_heart(void *vargp) {
 		// clang-format off
 		while(nanosleep(&tmspec, &tmspec));
 		// clang-format on
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldcancelstate);
 		discord_heartbeat(ctx);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldcancelstate);
 	}
 }
 
@@ -582,10 +586,11 @@ void discord_handle_hello(json_object *response, ttc_discord_ctx_t *ctx) {
 
 	ctx->heart_interval = json_object_get_uint64(heartbeat_interval);
 	TTC_LOG_DEBUG("Discord Hello says to beat heart every %lu milliseconds\n", ctx->heart_interval);
+	if (ctx->heart_thread) {
+		pthread_cancel(ctx->heart_thread);
+		pthread_join(ctx->heart_thread, NULL);
+	}
 	pthread_create(&ctx->heart_thread, NULL, discord_heart, ctx);
-}
-
-void discord_polite_exit() {
 }
 
 void discord_ws_closed(uint16_t close_code, ttc_discord_ctx_t *ctx) {
@@ -620,8 +625,9 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 			ttc_ws_free(ctx->gateway);
 			ctx->gateway = ttc_ws_create_from_host(ctx->gateway_url, "443", ctx->ssl_ctx);
 			if (!ctx->gateway) {
-				pthread_cancel(ctx->heart_thread);
-				pthread_exit(exit);
+				TTC_LOG_ERROR("Couldn't reconnect after receiving a invalid session. Shutting down!\n");
+				ttc_discord_stop_bot(ctx);
+				pthread_exit(NULL);
 			}
 			break;
 		}
@@ -644,10 +650,26 @@ void parse_message(ttc_ws_buffer_t *buffer, ttc_discord_ctx_t *ctx) {
 void *discord_gateway_read(void *vargp) {
 	ttc_discord_ctx_t *ctx = vargp;
 	ttc_ws_buffer_t *buffer;
+	short revents;
+	int oldcancelstate;
 
 	while (1) {
-		buffer = ttc_ws_read(ctx->gateway);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldcancelstate);
+		// reset revents since it might stay unmodified
+		revents = 0;
+		ttc_ws_poll(ctx->gateway, POLLIN, &revents);
 
+		if (revents & (POLLERR | POLLHUP)) {
+			// TODO: Instead of stopping try to recreate the connection!
+			TTC_LOG_ERROR(
+					"Polling the gateway socket returned a POLLERR or POLLHUP: %hd\nStopping the bot!\n",
+					revents);
+			ttc_discord_stop_bot(ctx);
+			pthread_exit(NULL);
+		}
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldcancelstate);
+
+		buffer = ttc_ws_read(ctx->gateway);
 		switch (buffer->opcode) {
 			case 0: {                 /*the websocket closed without telling us*/
 				discord_reconnect(ctx); /*To reconnect*/
