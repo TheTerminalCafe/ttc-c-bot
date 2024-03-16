@@ -232,7 +232,6 @@ int ttc_discord_parse_config(char *path, ttc_discord_ctx_t *ctx) {
 
 ttc_discord_ctx_t *ttc_discord_ctx_create(char *path) {
 	ttc_discord_ctx_t *discord = calloc(1, sizeof(ttc_discord_ctx_t));
-	int length;
 
 	if (ttc_discord_parse_config(path, discord) < 0) {
 		free(discord);
@@ -241,9 +240,7 @@ ttc_discord_ctx_t *ttc_discord_ctx_create(char *path) {
 
 	TTC_LOG_INFO("Discord Token: %s\n", discord->token);
 	TTC_LOG_INFO("Discord App Id: %s\n", discord->app_id);
-	length = snprintf(NULL, 0, "Bot %s", discord->token);
-	discord->api_token = calloc(1, length + 1);
-	length = snprintf(discord->api_token, length + 1, "Bot %s", discord->token);
+	CREATE_SNPRINTF_STRING(discord->api_token, "Bot %s", discord->token);
 
 	discord->ssl_ctx = ssl_init();
 

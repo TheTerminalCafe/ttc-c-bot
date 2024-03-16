@@ -9,14 +9,8 @@ int ttc_discord_kick_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid, 
 	ttc_http_response_t *response;
 	int result;
 	char *url;
-	const char *fmt = "/api/v10/guilds/%lu/members/%lu";
-	int length = 0;
 
-	length = snprintf(NULL, 0, fmt, gid, uid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, gid, uid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64, gid, uid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -42,14 +36,8 @@ int ttc_discord_pardon_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid
 	ttc_discord_embed_t embed;
 	int result = 0;
 	char *url;
-	const char *fmt = "/api/v10/guilds/%lu/bans/%lu";
-	int length = 0;
 
-	length = snprintf(NULL, 0, fmt, gid, uid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, gid, uid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/guilds/%" PRIu64 "/bans/%" PRIu64, gid, uid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -77,18 +65,12 @@ int ttc_discord_ban_member(ttc_discord_ctx_t *ctx, uint64_t uid, uint64_t gid, c
 	ttc_discord_embed_t embed;
 	int result = 0;
 	char *url;
-	const char *fmt = "/api/v10/guilds/%lu/bans/%lu";
-	int length = 0;
 
-	length = snprintf(NULL, 0, fmt, gid, uid);
-
-	url = calloc(1, length + 1);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/guilds/%" PRIu64 "/bans/%" PRIu64, gid, uid);
 
 	ban_json = json_object_new_object();
 	sec_to_del = json_object_new_int(seconds);
 	json_object_object_add(ban_json, "delete_message_seconds", sec_to_del);
-
-	snprintf(url, length + 1, fmt, gid, uid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -119,13 +101,10 @@ int ttc_discord_timeout_member(ttc_discord_ctx_t *ctx, snowflake_t uid, snowflak
 	json_object *root = NULL, *end_timestamp_json = NULL;
 	ttc_discord_embed_t embed;
 	int16_t result = 0;
-	const char *format = "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64;
 
 	char *url = NULL;
 
-	int length = snprintf(NULL, 0, format, gid, uid);
-	url = malloc(length + 1);
-	snprintf(url, length + 1, format, gid, uid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/guilds/%" PRIu64 "/members/%" PRIu64, gid, uid);
 
 	root = json_object_new_object();
 	if (end_timestamp) {

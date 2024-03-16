@@ -19,7 +19,7 @@ void ttc_self_roles_picked(ttc_discord_interaction_t *interaction, ttc_discord_c
 	ttc_http_response_t *response;
 	ttc_discord_member_t *member = interaction->member;
 	char *role_url;
-	int length, res;
+	int res;
 	bool found = 0;
 	/*Responsed with loading for now*/
 	ttc_discord_interaction_loading(ctx, url);
@@ -104,9 +104,7 @@ void ttc_ticket_modal_create(ttc_discord_interaction_t *interaction, ttc_discord
 	json_object_object_add(response, "type", type);
 	json_object_object_add(response, "data", modal);
 
-	int length = snprintf(NULL, 0, "%lu", strlen(json_object_to_json_string(response)));
-	length_str = calloc(1, length + 1);
-	snprintf(length_str, length + 1, "%lu", strlen(json_object_to_json_string(response)));
+	CREATE_SNPRINTF_STRING(length_str, "%" PRIu64, strlen(json_object_to_json_string(response)));
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);

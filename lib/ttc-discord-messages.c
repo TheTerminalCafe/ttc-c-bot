@@ -13,19 +13,13 @@ int ttc_discord_send_simple_message(const char *str, ttc_discord_ctx_t *ctx, uin
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *url;
-	int length;
-	const char *fmt = "/api/v10/channels/%lu/messages";
 
 	content = json_object_new_string(str);
 	message = json_object_new_object();
 
 	json_object_object_add(message, "content", content);
 
-	length = snprintf(NULL, 0, fmt, cid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, cid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages", cid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -47,20 +41,14 @@ int ttc_discord_edit_embed(ttc_discord_embed_t *embed, ttc_discord_ctx_t *ctx, u
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *url;
-	int length;
-	const char *fmt = "/api/v10/channels/%lu/messages/%lu";
 
-	printf("Message id: %lu\n", mid);
+	printf("Message id: %" PRIu64 "\n", mid);
 
 	json_embed = ttc_discord_embed_to_json(embed);
 	embeds = json_object_new_array();
 	message = json_object_new_object();
 
-	length = snprintf(NULL, 0, fmt, cid, mid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, cid, mid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages/%" PRIu64, cid, mid);
 
 	json_object_array_add(embeds, json_embed);
 	json_object_object_add(message, "embeds", embeds);
@@ -87,8 +75,6 @@ int ttc_discord_send_embed(ttc_discord_embed_t *embed, ttc_discord_ctx_t *ctx, u
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *url;
-	int length;
-	const char *fmt = "/api/v10/channels/%lu/messages";
 
 	json_embed = ttc_discord_embed_to_json(embed);
 	embeds = json_object_new_array();
@@ -97,11 +83,7 @@ int ttc_discord_send_embed(ttc_discord_embed_t *embed, ttc_discord_ctx_t *ctx, u
 	json_object_array_add(embeds, json_embed);
 	json_object_object_add(message, "embeds", embeds);
 
-	length = snprintf(NULL, 0, fmt, cid);
-
-	url = calloc(1, length + 1);
-
-	snprintf(url, length + 1, fmt, cid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages", cid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);

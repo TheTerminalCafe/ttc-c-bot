@@ -24,13 +24,8 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 	ttc_http_response_t *response;
 	json_object *message, *author, *embeds, *em;
 	char *url = NULL;
-	int length;
 
-	length = snprintf(NULL, 0, "/api/v10/channels/%lu/messages/%lu", cid, mid);
-
-	url = calloc(1, length + 1);
-
-	length = snprintf(url, length + 1, "/api/v10/channels/%lu/messages/%lu", cid, mid);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/channels/%" PRIu64 "/messages/%" PRIu64, cid, mid);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
@@ -43,9 +38,7 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 	ttc_http_request_free(request);
 	TTC_LOG_WARN("%s\n", response->data);
 
-	length = response->status;
-	if (length == 200) {
-
+	if (response->status == 200) {
 		message = json_tokener_parse(response->data);
 
 		json_object_object_get_ex(message, "author", &author);
@@ -66,5 +59,6 @@ int ttc_discord_message_extract_embed(ttc_discord_ctx_t *ctx, snowflake_t cid, s
 		return 0;
 	}
 
+	ttc_http_response_free(response);
 	return 1;
 }

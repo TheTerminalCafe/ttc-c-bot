@@ -40,17 +40,13 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	ttc_http_request_t *request;
 	ttc_http_response_t *response;
 	char *url, *permissions;
-	int result, length;
+	int result;
 
-	length = snprintf(NULL, 0, "%lu", command->default_permissions);
-
-	permissions = calloc(1, length + 1);
+	CREATE_SNPRINTF_STRING(permissions, "%" PRIu64, command->default_permissions);
 	if (!permissions) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		return -1;
 	}
-
-	snprintf(permissions, length + 1, "%lu", command->default_permissions);
 
 	command_json = json_object_new_object();
 	name = json_object_new_string(command->name);
@@ -86,16 +82,12 @@ int discord_create_application_command(command_t *command, ttc_discord_ctx_t *ct
 	json_object_object_add(command_json, "dm_permission", allow_in_dms);
 	json_object_object_add(command_json, "default_member_permissions", default_permissions);
 
-	length = snprintf(NULL, 0, "/api/v10/applications/%s/commands", ctx->app_id);
-
-	url = calloc(1, length + 1);
+	CREATE_SNPRINTF_STRING(url, "/api/v10/applications/%s/commands", ctx->app_id);
 	if (!url) {
 		TTC_LOG_DEBUG("Allocating Length string failed\n");
 		free(permissions);
 		return -1;
 	}
-
-	length = snprintf(url, length + 1, "/api/v10/applications/%s/commands", ctx->app_id);
 
 	request = ttc_http_new_request();
 	ttc_http_request_set_path(request, url);
